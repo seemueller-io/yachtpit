@@ -1,5 +1,5 @@
 use crate::core::actions::{set_movement_actions, Actions};
-use crate::core::loading::AudioAssets;
+use crate::ui::loading::AudioAssets;
 use crate::GameState;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;

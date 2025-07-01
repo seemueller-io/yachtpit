@@ -8,7 +8,7 @@ use bevy::app::App;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
-use crate::core::{ActionsPlugin, InternalAudioPlugin, SystemManagerPlugin};
+use crate::core::{ActionsPlugin, SystemManagerPlugin};
 use crate::core::system_manager::SystemManager;
 use crate::ui::{LoadingPlugin, MenuPlugin};
 use models::{PlayerPlugin, setup_instrument_cluster, get_yacht_systems};
@@ -43,7 +43,6 @@ impl Plugin for GamePlugin {
             LoadingPlugin,
             MenuPlugin,
             ActionsPlugin,
-            InternalAudioPlugin,
             SystemManagerPlugin,
             PlayerPlugin,
         ))

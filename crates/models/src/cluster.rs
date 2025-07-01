@@ -269,8 +269,8 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                                             border: UiRect::all(Val::Px(1.0)),
                                             ..default()
                                         },
-                                        BackgroundColor(Color::linear_rgb(0.2, 0.2, 0.2)),
-                                        BorderColor(Color::linear_rgb(0.4, 0.4, 0.4)),
+                                        BackgroundColor(instruments_theme::BACKGROUND_COLOR_PRIMARY),
+                                        BorderColor(instruments_theme::TEXT_COLOR_PRIMARY),
                                     ))
                                         .with_children(|bar_bg| {
                                             bar_bg.spawn((
@@ -279,7 +279,7 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                                                     height: Val::Percent(100.0),
                                                     ..default()
                                                 },
-                                                BackgroundColor(Color::linear_rgb(0.0, 0.8, 0.0)),
+                                                BackgroundColor(instruments_theme::TEXT_COLOR_SUCCESS),
                                             ));
                                         });
 

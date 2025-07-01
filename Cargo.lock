@@ -5623,6 +5623,8 @@ dependencies = [
  "log",
  "models",
  "rand 0.8.5",
+ "wasm-bindgen",
+ "web-sys",
  "webbrowser",
  "winit",
 ]

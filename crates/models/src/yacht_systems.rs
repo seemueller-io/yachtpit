@@ -4,8 +4,35 @@
 //! bridging the existing functionality with the new higher-level abstraction.
 
 use bevy::prelude::*;
-use crate::core::system_manager::{YachtSystem, SystemInteraction, SystemStatus};
-use crate::domain::instruments::YachtData;
+use crate::instruments::YachtData;
+
+/// Status of a yacht system
+#[derive(Debug, Clone, PartialEq)]
+pub enum SystemStatus {
+    Active,
+    Inactive,
+    Error(String),
+    Maintenance,
+}
+
+/// Interaction types for yacht systems
+#[derive(Debug, Clone)]
+pub enum SystemInteraction {
+    Select,
+    Toggle,
+    Reset,
+    Configure(String, String),
+}
+
+/// Common trait for all yacht systems
+pub trait YachtSystem: Send + Sync {
+    fn id(&self) -> &'static str;
+    fn display_name(&self) -> &'static str;
+    fn update(&mut self, yacht_data: &YachtData, time: &Time);
+    fn render_display(&self, yacht_data: &YachtData) -> String;
+    fn handle_interaction(&mut self, interaction: SystemInteraction) -> bool;
+    fn status(&self) -> SystemStatus;
+}
 
 /// GPS Navigation System implementation
 pub struct GpsSystem {

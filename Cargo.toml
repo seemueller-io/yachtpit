@@ -1,7 +1,10 @@
 [workspace]
-members = ["crates/yachtpit", "crates/yachtpit/mobile"]
+members = ["crates/yachtpit", "crates/yachtpit/mobile", "crates/models"]
 resolver = "2"
 
 default-members = [
     "crates/yachtpit"
 ]
+
+[workspace.dependencies]
+bevy = { version = "0.16", default-features = false }

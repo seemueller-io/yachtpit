@@ -8,4 +8,5 @@ pub use actions::ActionsPlugin;
 pub use audio::InternalAudioPlugin;
 pub use loading::LoadingPlugin;
 pub use menu::MenuPlugin;
-pub use system_manager::{SystemManagerPlugin, SystemManager, YachtSystem, SystemInteraction, SystemStatus};
+pub use system_manager::{SystemManagerPlugin, SystemManager};
+pub use models::{YachtSystem, SystemInteraction, SystemStatus};

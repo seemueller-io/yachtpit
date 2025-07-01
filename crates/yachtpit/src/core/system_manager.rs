@@ -6,45 +6,7 @@
 
 use bevy::prelude::*;
 use std::collections::HashMap;
-
-/// Trait for defining yacht system behavior
-pub trait YachtSystem: Send + Sync + 'static {
-    /// Unique identifier for the system
-    fn id(&self) -> &'static str;
-    
-    /// Display name for the system
-    fn display_name(&self) -> &'static str;
-    
-    /// Update the system's internal state
-    fn update(&mut self, yacht_data: &crate::domain::instruments::YachtData, time: &Time);
-    
-    /// Generate display content for the system
-    fn render_display(&self, yacht_data: &crate::domain::instruments::YachtData) -> String;
-    
-    /// Handle system-specific interactions
-    fn handle_interaction(&mut self, interaction_type: SystemInteraction) -> bool;
-    
-    /// Get the system's current status
-    fn status(&self) -> SystemStatus;
-}
-
-/// Types of interactions that can occur with yacht systems
-#[derive(Debug, Clone)]
-pub enum SystemInteraction {
-    Select,
-    Configure(String, String), // key, value
-    Reset,
-    Toggle,
-}
-
-/// Status of a yacht system
-#[derive(Debug, Clone, PartialEq)]
-pub enum SystemStatus {
-    Active,
-    Inactive,
-    Error(String),
-    Maintenance,
-}
+use models::{YachtSystem, SystemInteraction, SystemStatus, instruments::YachtData};
 
 /// Resource for managing all yacht systems
 #[derive(Resource)]
@@ -62,21 +24,21 @@ impl SystemManager {
             system_order: Vec::new(),
         }
     }
-    
+
     /// Register a new yacht system
     pub fn register_system(&mut self, system: Box<dyn YachtSystem>) {
         let id = system.id().to_string();
         self.system_order.push(id.clone());
         self.systems.insert(id, system);
     }
-    
+
     /// Get the currently active system
     pub fn active_system(&self) -> Option<&dyn YachtSystem> {
         self.active_system.as_ref()
             .and_then(|id| self.systems.get(id))
             .map(|system| system.as_ref())
     }
-    
+
     /// Set the active system by ID
     pub fn set_active_system(&mut self, system_id: &str) -> bool {
         if self.systems.contains_key(system_id) {
@@ -86,7 +48,7 @@ impl SystemManager {
             false
         }
     }
-    
+
     /// Get all registered systems in order
     pub fn get_systems(&self) -> Vec<&dyn YachtSystem> {
         self.system_order.iter()
@@ -94,14 +56,14 @@ impl SystemManager {
             .map(|system| system.as_ref())
             .collect()
     }
-    
+
     /// Update all systems
-    pub fn update_systems(&mut self, yacht_data: &crate::domain::instruments::YachtData, time: &Time) {
+    pub fn update_systems(&mut self, yacht_data: &YachtData, time: &Time) {
         for system in self.systems.values_mut() {
             system.update(yacht_data, time);
         }
     }
-    
+
     /// Handle interaction with a specific system
     pub fn handle_system_interaction(&mut self, system_id: &str, interaction: SystemInteraction) -> bool {
         if let Some(system) = self.systems.get_mut(system_id) {
@@ -110,15 +72,15 @@ impl SystemManager {
             false
         }
     }
-    
+
     /// Get system by ID
     pub fn get_system(&self, system_id: &str) -> Option<&dyn YachtSystem> {
         self.systems.get(system_id).map(|s| s.as_ref())
     }
-    
+
     /// Get mutable system by ID
-    pub fn get_system_mut(&mut self, system_id: &str) -> Option<&mut dyn YachtSystem> {
-        self.systems.get_mut(system_id).map(|s| s.as_mut())
+    pub fn get_system_mut(&mut self, system_id: &str) -> Option<&mut Box<dyn YachtSystem>> {
+        self.systems.get_mut(system_id)
     }
 }
 
@@ -158,7 +120,7 @@ impl Plugin for SystemManagerPlugin {
 /// System to update all yacht systems
 fn update_all_systems(
     mut system_manager: ResMut<SystemManager>,
-    yacht_data: Res<crate::domain::instruments::YachtData>,
+    yacht_data: Res<models::instruments::YachtData>,
     time: Res<Time>,
 ) {
     system_manager.update_systems(&yacht_data, &time);
@@ -196,7 +158,7 @@ fn handle_system_indicator_interactions(
 fn update_system_display_content(
     system_manager: Res<SystemManager>,
     mut display_query: Query<&mut Text, With<SystemDisplayArea>>,
-    yacht_data: Res<crate::domain::instruments::YachtData>,
+    yacht_data: Res<models::instruments::YachtData>,
 ) {
     if let Ok(mut text) = display_query.single_mut() {
         if let Some(active_system) = system_manager.active_system() {
@@ -210,7 +172,7 @@ fn update_system_display_content(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::instruments::YachtData;
+    use models::instruments::YachtData;
 
     struct MockSystem {
         id: &'static str,
@@ -237,7 +199,7 @@ mod tests {
             name: "Test System",
             status: SystemStatus::Active,
         });
-        
+
         manager.register_system(mock_system);
         assert!(manager.get_system("test").is_some());
         assert_eq!(manager.get_systems().len(), 1);
@@ -251,7 +213,7 @@ mod tests {
             name: "Test System",
             status: SystemStatus::Active,
         });
-        
+
         manager.register_system(mock_system);
         assert!(manager.set_active_system("test"));
         assert!(manager.active_system().is_some());

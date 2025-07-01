@@ -2922,6 +2922,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "models"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "naga"
 version = "24.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5613,6 +5621,7 @@ dependencies = [
  "embed-resource",
  "image",
  "log",
+ "models",
  "rand 0.8.5",
  "webbrowser",
  "winit",

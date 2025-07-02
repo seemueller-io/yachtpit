@@ -1,23 +1,19 @@
 #![allow(clippy::type_complexity)]
 
-mod actions;
-mod audio;
-mod loading;
-mod menu;
-mod player;
 
-use crate::actions::ActionsPlugin;
-use crate::audio::InternalAudioPlugin;
-use crate::loading::LoadingPlugin;
-use crate::menu::MenuPlugin;
-use crate::player::PlayerPlugin;
+mod core;
+mod ui;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
+use crate::core::{ActionsPlugin, SystemManagerPlugin};
+use crate::core::system_manager::SystemManager;
+use crate::ui::{LoadingPlugin, MenuPlugin};
+use systems::{PlayerPlugin, setup_instrument_cluster, get_yacht_systems};
 
-// This example game uses States to separate logic
+// This game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
 // Or https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs
 #[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
@@ -33,15 +29,24 @@ enum GameState {
 
 pub struct GamePlugin;
 
+/// Initialize yacht systems in the SystemManager
+fn initialize_yacht_systems(mut system_manager: ResMut<SystemManager>) {
+    let systems = get_yacht_systems();
+    for system in systems {
+        system_manager.register_system(system);
+    }
+}
+
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>().add_plugins((
             LoadingPlugin,
             MenuPlugin,
             ActionsPlugin,
-            InternalAudioPlugin,
+            SystemManagerPlugin,
             PlayerPlugin,
-        ));
+        ))
+        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_yacht_systems));
 
         #[cfg(debug_assertions)]
         {

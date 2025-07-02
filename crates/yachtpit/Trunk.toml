@@ -1,5 +1,6 @@
 [build]
 public_url = "./"
+wasm_bindgen = "0.2.100"
 
 [serve]
 port = 8080

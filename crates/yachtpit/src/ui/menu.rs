@@ -1,4 +1,3 @@
-use crate::loading::TextureAssets;
 use crate::GameState;
 use bevy::prelude::*;
 
@@ -32,7 +31,7 @@ impl Default for ButtonColors {
 #[derive(Component)]
 struct Menu;
 
-fn setup_menu(mut commands: Commands, textures: Res<TextureAssets>) {
+fn setup_menu(mut commands: Commands) {
     info!("menu");
     commands.spawn((Camera2d, Msaa::Off));
     commands
@@ -114,10 +113,6 @@ fn setup_menu(mut commands: Commands, textures: Res<TextureAssets>) {
                         TextColor(Color::linear_rgb(0.9, 0.9, 0.9)),
                     ));
                     parent.spawn((
-                        ImageNode {
-                            image: textures.bevy.clone(),
-                            ..default()
-                        },
                         Node {
                             width: Val::Px(32.),
                             ..default()
@@ -152,7 +147,6 @@ fn setup_menu(mut commands: Commands, textures: Res<TextureAssets>) {
                         TextColor(Color::linear_rgb(0.9, 0.9, 0.9)),
                     ));
                     parent.spawn((
-                        ImageNode::new(textures.github.clone()),
                         Node {
                             width: Val::Px(32.),
                             ..default()

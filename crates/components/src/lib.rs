@@ -7,8 +7,10 @@ pub mod ui;
 pub mod instruments;
 pub mod theme;
 pub mod cluster;
+pub mod composition;
 
 pub use ui::*;
 pub use instruments::*;
 pub use theme::*;
 pub use cluster::*;
+pub use composition::*;

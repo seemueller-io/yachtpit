@@ -11,7 +11,7 @@ use bevy::prelude::*;
 use crate::core::{ActionsPlugin, SystemManagerPlugin};
 use crate::core::system_manager::SystemManager;
 use crate::ui::{LoadingPlugin, MenuPlugin};
-use models::{PlayerPlugin, setup_instrument_cluster, get_yacht_systems};
+use systems::{PlayerPlugin, setup_instrument_cluster, get_yacht_systems};
 
 // This game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html

@@ -1,25 +1,20 @@
 use bevy::prelude::*;
-use super::instruments::*;
 use super::theme::*;
 use super::composition::*;
+use super::speed_gauge::SpeedGauge;
+use super::depth_gauge::DepthGauge;
+use super::compass_gauge::CompassGauge;
+use super::engine_status::EngineStatus;
+use super::navigation_display::NavigationDisplay;
+use super::gps_indicator::GpsIndicator;
+use super::radar_indicator::RadarIndicator;
+use super::ais_indicator::AisIndicator;
+use super::system_display::SystemDisplay;
+use super::wind_display::WindDisplay;
 
+/// Main instrument cluster component
 #[derive(Component)]
 pub struct InstrumentCluster;
-
-#[derive(Component)]
-pub struct GpsIndicator;
-
-#[derive(Component)]
-pub struct RadarIndicator;
-
-#[derive(Component)]
-pub struct AisIndicator;
-
-#[derive(Component)]
-pub struct SystemDisplay;
-
-#[derive(Component)]
-pub struct WindDisplay;
 
 /// Sets up the main instrument cluster UI using composable components
 pub fn setup_instrument_cluster(mut commands: Commands) {
@@ -110,45 +105,39 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                 grid.spawn(progress_bar_node())
                 .with_children(|bar| {
                     bar.spawn(create_text("FUEL", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
-                    bar.spawn((
-                        progress_bar_background_node(),
-                        BackgroundColor(BACKGROUND_COLOR_PRIMARY),
-                        BorderColor(TEXT_COLOR_PRIMARY),
-                    ))
-                    .with_children(|bar_bg| {
-                        bar_bg.spawn((
+                    bar.spawn(progress_bar_background_node())
+                    .with_children(|bg| {
+                        bg.spawn((
                             progress_bar_fill_node(75.0),
                             BackgroundColor(TEXT_COLOR_SUCCESS),
                         ));
                     });
-                    bar.spawn(create_text("75%", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                    bar.spawn(create_text("75%", FONT_SIZE_SMALL, TEXT_COLOR_SUCCESS));
                 });
 
                 // Battery Level Bar
                 grid.spawn(progress_bar_node())
                 .with_children(|bar| {
-                    bar.spawn(create_text("BATTERY", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
-                    bar.spawn((
-                        progress_bar_background_node(),
-                        BackgroundColor(BACKGROUND_COLOR_SECONDARY),
-                        BorderColor(BORDER_COLOR_SECONDARY),
-                    ))
-                    .with_children(|bar_bg| {
-                        bar_bg.spawn((
+                    bar.spawn(create_text("BATT", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                    bar.spawn(progress_bar_background_node())
+                    .with_children(|bg| {
+                        bg.spawn((
                             progress_bar_fill_node(88.0),
-                            BackgroundColor(BACKGROUND_COLOR_SECONDARY),
+                            BackgroundColor(TEXT_COLOR_SUCCESS),
                         ));
                     });
-                    bar.spawn(create_text("88%", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                    bar.spawn(create_text("88%", FONT_SIZE_SMALL, TEXT_COLOR_SUCCESS));
                 });
 
-                // System Status Indicators
-                grid.spawn(Node {
-                    flex_direction: FlexDirection::Row,
-                    justify_content: JustifyContent::SpaceBetween,
-                    width: Val::Percent(100.0),
-                    ..default()
-                })
+                // System Indicators Row
+                grid.spawn((
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        width: Val::Percent(100.0),
+                        ..default()
+                    },
+                ))
                 .with_children(|indicators| {
                     // GPS Indicator
                     indicators.spawn((

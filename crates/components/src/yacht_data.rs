@@ -1,20 +1,7 @@
 use bevy::prelude::*;
-
-/// Individual instrument components
-#[derive(Component)]
-pub struct SpeedGauge;
-
-#[derive(Component)]
-pub struct DepthGauge;
-
-#[derive(Component)]
-pub struct CompassGauge;
-
-#[derive(Component)]
-pub struct EngineStatus;
-
-#[derive(Component)]
-pub struct NavigationDisplay;
+use super::speed_gauge::SpeedGauge;
+use super::depth_gauge::DepthGauge;
+use super::compass_gauge::CompassGauge;
 
 /// Yacht data resource containing all sensor readings
 #[derive(Resource)]

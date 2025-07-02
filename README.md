@@ -8,10 +8,11 @@
 </p>
 
 <p align="center">
-An open-source cross-platform cockpit for Boats, targeting Windows, macOS, Linux, WebAssembly, Android, and iOS.
+An open-source virtual cockpit for Windows, macOS, Linux, Web, Android, and iOS.
 </p>
 
-### prereqs
+
+### shrimp
 - cargo/Rust
 
 ### grits

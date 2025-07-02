@@ -1,6 +1,5 @@
 use bevy::prelude::*;
-use super::cluster::setup_instrument_cluster;
-use super::instruments::{YachtData, update_yacht_data, update_instrument_displays};
+use components::{setup_instrument_cluster, YachtData, update_yacht_data, update_instrument_displays};
 use super::yacht_systems::{create_yacht_systems, YachtSystem};
 
 pub struct PlayerPlugin;

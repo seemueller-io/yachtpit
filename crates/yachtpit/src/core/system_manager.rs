@@ -6,7 +6,8 @@
 
 use bevy::prelude::*;
 use std::collections::HashMap;
-use systems::{YachtSystem, SystemInteraction, SystemStatus, instruments::YachtData};
+use systems::{YachtSystem, SystemInteraction, SystemStatus};
+use components::YachtData;
 
 /// Resource for managing all yacht systems
 #[derive(Resource)]
@@ -120,7 +121,7 @@ impl Plugin for SystemManagerPlugin {
 /// System to update all yacht systems
 fn update_all_systems(
     mut system_manager: ResMut<SystemManager>,
-    yacht_data: Res<systems::instruments::YachtData>,
+    yacht_data: Res<components::YachtData>,
     time: Res<Time>,
 ) {
     system_manager.update_systems(&yacht_data, &time);
@@ -158,7 +159,7 @@ fn handle_system_indicator_interactions(
 fn update_system_display_content(
     system_manager: Res<SystemManager>,
     mut display_query: Query<&mut Text, With<SystemDisplayArea>>,
-    yacht_data: Res<systems::instruments::YachtData>,
+    yacht_data: Res<components::YachtData>,
 ) {
     if let Ok(mut text) = display_query.single_mut() {
         if let Some(active_system) = system_manager.active_system() {
@@ -172,7 +173,7 @@ fn update_system_display_content(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use systems::instruments::YachtData;
+    use components::YachtData;
 
     struct MockSystem {
         id: &'static str,

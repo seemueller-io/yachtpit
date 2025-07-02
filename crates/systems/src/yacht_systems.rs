@@ -4,7 +4,7 @@
 //! bridging the existing functionality with the new higher-level abstraction.
 
 use bevy::prelude::*;
-use crate::instruments::YachtData;
+use components::YachtData;
 
 /// Status of a yacht system
 #[derive(Debug, Clone, PartialEq)]

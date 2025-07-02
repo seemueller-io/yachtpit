@@ -1,5 +1,5 @@
 [package]
-name = "systems"
+name = "components"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -15,5 +15,3 @@ bevy = { workspace = true, features = [
     "bevy_ui",
     "bevy_window",
 ] }
-rand = { version = "0.8.3" }
-components = { path = "../components" }

@@ -1,18 +1,5 @@
 use bevy::prelude::*;
-use super::instruments::YachtData;
-
-/// System indicator components
-#[derive(Component)]
-pub struct GpsIndicator;
-
-#[derive(Component)]
-pub struct RadarIndicator;
-
-#[derive(Component)]
-pub struct AisIndicator;
-
-#[derive(Component)]
-pub struct SystemDisplay;
+use components::{YachtData, GpsIndicator, RadarIndicator, AisIndicator, SystemDisplay};
 
 /// Resource to track which system is currently selected
 #[derive(Resource, Default)]

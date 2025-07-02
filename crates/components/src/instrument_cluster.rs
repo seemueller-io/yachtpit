@@ -6,10 +6,7 @@ use super::depth_gauge::DepthGauge;
 use super::compass_gauge::CompassGauge;
 use super::engine_status::EngineStatus;
 use super::navigation_display::NavigationDisplay;
-use super::gps_indicator::GpsIndicator;
-use super::radar_indicator::RadarIndicator;
-use super::ais_indicator::AisIndicator;
-use super::system_display::SystemDisplay;
+use super::system_display::{SystemDisplay, SystemIndicator, SystemDisplayArea};
 use super::wind_display::WindDisplay;
 
 /// Main instrument cluster component
@@ -145,11 +142,12 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                         system_indicator_node(),
                         BackgroundColor(BACKGROUND_COLOR_SECONDARY),
                         BorderColor(BORDER_COLOR_SECONDARY),
-                        GpsIndicator,
+                        SystemIndicator {
+                            system_id: "gps".to_string(),
+                        },
                     ))
                     .with_children(|indicator| {
-                        indicator.spawn(create_text("🛰️", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
-                        indicator.spawn(create_text("GPS", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                        indicator.spawn(create_text("GPS", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
                     });
 
                     // RADAR Indicator
@@ -158,11 +156,12 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                         system_indicator_node(),
                         BackgroundColor(BACKGROUND_COLOR_SECONDARY),
                         BorderColor(BORDER_COLOR_SECONDARY),
-                        RadarIndicator,
+                        SystemIndicator {
+                            system_id: "radar".to_string(),
+                        },
                     ))
                     .with_children(|indicator| {
-                        indicator.spawn(create_text("📡", FONT_SIZE_NORMAL, Color::linear_rgb(0.0, 1.0, 0.0)));
-                        indicator.spawn(create_text("RADAR", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                        indicator.spawn(create_text("RADAR", FONT_SIZE_NORMAL, Color::linear_rgb(0.0, 1.0, 0.0)));
                     });
 
                     // AIS Indicator
@@ -171,11 +170,12 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                         system_indicator_node(),
                         BackgroundColor(BACKGROUND_COLOR_SECONDARY),
                         BorderColor(BORDER_COLOR_SECONDARY),
-                        AisIndicator,
+                        SystemIndicator {
+                            system_id: "ais".to_string(),
+                        },
                     ))
                     .with_children(|indicator| {
-                        indicator.spawn(create_text("🚢", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
-                        indicator.spawn(create_text("AIS", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                        indicator.spawn(create_text("AIS", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
                     });
                 });
             });
@@ -211,7 +211,15 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
             SystemDisplay,
         ))
         .with_children(|display| {
-            display.spawn(create_text("Select a system above to view details", FONT_SIZE_SMALL, TEXT_COLOR_SECONDARY));
+            display.spawn((
+                Text::new("Select a system above to view details"),
+                TextFont {
+                    font_size: FONT_SIZE_SMALL,
+                    ..default()
+                },
+                TextColor(TEXT_COLOR_SECONDARY),
+                SystemDisplayArea,
+            ));
         });
     });
 }

@@ -7,7 +7,7 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 use systems::{YachtSystem, SystemInteraction, SystemStatus};
-use components::YachtData;
+use components::{YachtData, SystemIndicator, SystemDisplayArea};
 
 /// Resource for managing all yacht systems
 #[derive(Resource)]
@@ -91,15 +91,6 @@ impl Default for SystemManager {
     }
 }
 
-/// Component for marking UI elements as system indicators
-#[derive(Component)]
-pub struct SystemIndicator {
-    pub system_id: String,
-}
-
-/// Component for marking the main system display area
-#[derive(Component)]
-pub struct SystemDisplayArea;
 
 /// Plugin for the system manager
 pub struct SystemManagerPlugin;

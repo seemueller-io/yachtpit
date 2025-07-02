@@ -11,3 +11,15 @@
 An open-source cross-platform cockpit for Boats, targeting Windows, macOS, Linux, WebAssembly, Android, and iOS.
 </p>
 
+### prereqs
+- cargo/Rust
+
+### grits
+```shell
+git clone https://github.com/seemueller-io/yachtpit.git && cd yachtpit
+
+# https://doc.rust-lang.org/cargo/commands/cargo-check.html#description 
+cargo check
+
+cargo run
+```

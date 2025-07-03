@@ -6,13 +6,13 @@
 
 use bevy::prelude::*;
 use std::collections::HashMap;
-use systems::{YachtSystem, SystemInteraction, SystemStatus};
-use components::{YachtData, SystemIndicator, SystemDisplayArea};
+use systems::{VesselSystem, SystemInteraction, SystemStatus};
+use components::{VesselData, SystemIndicator, SystemDisplayArea};
 
 /// Resource for managing all yacht systems
 #[derive(Resource)]
 pub struct SystemManager {
-    systems: HashMap<String, Box<dyn YachtSystem>>,
+    systems: HashMap<String, Box<dyn VesselSystem>>,
     active_system: Option<String>,
     system_order: Vec<String>,
 }
@@ -27,14 +27,14 @@ impl SystemManager {
     }
 
     /// Register a new yacht system
-    pub fn register_system(&mut self, system: Box<dyn YachtSystem>) {
+    pub fn register_system(&mut self, system: Box<dyn VesselSystem>) {
         let id = system.id().to_string();
         self.system_order.push(id.clone());
         self.systems.insert(id, system);
     }
 
     /// Get the currently active system
-    pub fn active_system(&self) -> Option<&dyn YachtSystem> {
+    pub fn active_system(&self) -> Option<&dyn VesselSystem> {
         self.active_system.as_ref()
             .and_then(|id| self.systems.get(id))
             .map(|system| system.as_ref())
@@ -51,7 +51,7 @@ impl SystemManager {
     }
 
     /// Get all registered systems in order
-    pub fn get_systems(&self) -> Vec<&dyn YachtSystem> {
+    pub fn get_systems(&self) -> Vec<&dyn VesselSystem> {
         self.system_order.iter()
             .filter_map(|id| self.systems.get(id))
             .map(|system| system.as_ref())
@@ -59,7 +59,7 @@ impl SystemManager {
     }
 
     /// Update all systems
-    pub fn update_systems(&mut self, yacht_data: &YachtData, time: &Time) {
+    pub fn update_systems(&mut self, yacht_data: &VesselData, time: &Time) {
         for system in self.systems.values_mut() {
             system.update(yacht_data, time);
         }
@@ -75,12 +75,12 @@ impl SystemManager {
     }
 
     /// Get system by ID
-    pub fn get_system(&self, system_id: &str) -> Option<&dyn YachtSystem> {
+    pub fn get_system(&self, system_id: &str) -> Option<&dyn VesselSystem> {
         self.systems.get(system_id).map(|s| s.as_ref())
     }
 
     /// Get mutable system by ID
-    pub fn get_system_mut(&mut self, system_id: &str) -> Option<&mut Box<dyn YachtSystem>> {
+    pub fn get_system_mut(&mut self, system_id: &str) -> Option<&mut Box<dyn VesselSystem>> {
         self.systems.get_mut(system_id)
     }
 }
@@ -112,7 +112,7 @@ impl Plugin for SystemManagerPlugin {
 /// System to update all yacht systems
 fn update_all_systems(
     mut system_manager: ResMut<SystemManager>,
-    yacht_data: Res<components::YachtData>,
+    yacht_data: Res<components::VesselData>,
     time: Res<Time>,
 ) {
     system_manager.update_systems(&yacht_data, &time);
@@ -150,7 +150,7 @@ fn handle_system_indicator_interactions(
 fn update_system_display_content(
     system_manager: Res<SystemManager>,
     mut display_query: Query<&mut Text, With<SystemDisplayArea>>,
-    yacht_data: Res<components::YachtData>,
+    yacht_data: Res<components::VesselData>,
 ) {
     if let Ok(mut text) = display_query.single_mut() {
         if let Some(active_system) = system_manager.active_system() {
@@ -164,7 +164,7 @@ fn update_system_display_content(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use components::YachtData;
+    use components::VesselData;
 
     struct MockSystem {
         id: &'static str,
@@ -172,11 +172,11 @@ mod tests {
         status: SystemStatus,
     }
 
-    impl YachtSystem for MockSystem {
+    impl VesselSystem for MockSystem {
         fn id(&self) -> &'static str { self.id }
         fn display_name(&self) -> &'static str { self.name }
-        fn update(&mut self, _yacht_data: &YachtData, _time: &Time) {}
-        fn render_display(&self, _yacht_data: &YachtData) -> String {
+        fn update(&mut self, _yacht_data: &VesselData, _time: &Time) {}
+        fn render_display(&self, _yacht_data: &VesselData) -> String {
             format!("Mock system: {}", self.name)
         }
         fn handle_interaction(&mut self, _interaction: SystemInteraction) -> bool { true }

@@ -1,27 +1,26 @@
 use bevy::prelude::*;
-use components::{setup_instrument_cluster, YachtData, update_yacht_data, update_instrument_displays};
-use super::yacht_systems::{create_yacht_systems, YachtSystem};
+use components::{setup_instrument_cluster, VesselData, update_vessel_data, update_instrument_displays};
+use super::vessel_systems::{create_vessel_systems, VesselSystem};
 
 pub struct PlayerPlugin;
 
-/// This plugin handles the futuristic yacht instrument cluster
-/// The main app should handle state management and system registration
+/// bind domain to bevy
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<YachtData>()
+        app.init_resource::<VesselData>()
             .add_systems(
                 Update, 
-                (update_yacht_data, update_instrument_displays)
+                (update_vessel_data, update_instrument_displays)
             );
     }
 }
 
-/// Setup function for instrument cluster - to be called by the main app
+/// Setup function called by the main app
 pub fn setup_instrument_cluster_system() -> impl Fn(Commands) {
     setup_instrument_cluster
 }
 
-/// Initialize yacht systems - returns the systems for registration
-pub fn get_yacht_systems() -> Vec<Box<dyn YachtSystem>> {
-    create_yacht_systems()
+/// Initialize marine systems - returns the systems for registration
+pub fn get_vessel_systems() -> Vec<Box<dyn VesselSystem>> {
+    create_vessel_systems()
 }

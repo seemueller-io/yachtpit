@@ -2,8 +2,6 @@
 
 use bevy::prelude::*;
 
-// Placeholder for UI components
-// This module will contain reusable UI components for the yacht pit application
 
 pub struct ComponentsPlugin;
 

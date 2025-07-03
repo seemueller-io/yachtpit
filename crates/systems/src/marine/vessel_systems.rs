@@ -1,12 +1,12 @@
-//! Concrete implementations of yacht systems using the SystemManager abstraction
+//! Concrete implementations of vessel systems using the SystemManager abstraction
 //! 
-//! This module provides implementations of the YachtSystem trait for GPS, Radar, and AIS systems,
+//! This module provides implementations of the VesselSystem trait for GPS, Radar, and AIS systems,
 //! bridging the existing functionality with the new higher-level abstraction.
 
 use bevy::prelude::*;
-use components::YachtData;
+use components::VesselData;
 
-/// Status of a yacht system
+/// Status of a vessel system
 #[derive(Debug, Clone, PartialEq)]
 pub enum SystemStatus {
     Active,
@@ -25,11 +25,11 @@ pub enum SystemInteraction {
 }
 
 /// Common trait for all yacht systems
-pub trait YachtSystem: Send + Sync {
+pub trait VesselSystem: Send + Sync {
     fn id(&self) -> &'static str;
     fn display_name(&self) -> &'static str;
-    fn update(&mut self, yacht_data: &YachtData, time: &Time);
-    fn render_display(&self, yacht_data: &YachtData) -> String;
+    fn update(&mut self, yacht_data: &VesselData, time: &Time);
+    fn render_display(&self, yacht_data: &VesselData) -> String;
     fn handle_interaction(&mut self, interaction: SystemInteraction) -> bool;
     fn status(&self) -> SystemStatus;
 }
@@ -51,7 +51,7 @@ impl GpsSystem {
     }
 }
 
-impl YachtSystem for GpsSystem {
+impl VesselSystem for GpsSystem {
     fn id(&self) -> &'static str {
         "gps"
     }
@@ -60,14 +60,14 @@ impl YachtSystem for GpsSystem {
         "GPS Navigation"
     }
 
-    fn update(&mut self, _yacht_data: &YachtData, time: &Time) {
+    fn update(&mut self, _yacht_data: &VesselData, time: &Time) {
         // Simulate satellite connection variations
         let t = time.elapsed_secs();
         self.satellites_connected = (12.0 + (t * 0.1).sin() * 2.0).max(8.0) as u8;
         self.hdop = 0.8 + (t * 0.05).sin() * 0.2;
     }
 
-    fn render_display(&self, yacht_data: &YachtData) -> String {
+    fn render_display(&self, yacht_data: &VesselData) -> String {
         format!(
             "GPS NAVIGATION SYSTEM\n\n\
             Position: 43°38'19.5\"N 1°26'58.3\"W\n\
@@ -140,7 +140,7 @@ impl RadarSystem {
     }
 }
 
-impl YachtSystem for RadarSystem {
+impl VesselSystem for RadarSystem {
     fn id(&self) -> &'static str {
         "radar"
     }
@@ -149,12 +149,12 @@ impl YachtSystem for RadarSystem {
         "Radar System"
     }
 
-    fn update(&mut self, _yacht_data: &YachtData, time: &Time) {
+    fn update(&mut self, _yacht_data: &VesselData, time: &Time) {
         // Update radar sweep angle
         self.sweep_angle = (time.elapsed_secs() * 60.0) % 360.0;
     }
 
-    fn render_display(&self, _yacht_data: &YachtData) -> String {
+    fn render_display(&self, _yacht_data: &VesselData) -> String {
         format!(
             "RADAR SYSTEM - {:.0} NM RANGE\n\n\
             Status: {}\n\
@@ -257,7 +257,7 @@ impl AisSystem {
     }
 }
 
-impl YachtSystem for AisSystem {
+impl VesselSystem for AisSystem {
     fn id(&self) -> &'static str {
         "ais"
     }
@@ -266,12 +266,12 @@ impl YachtSystem for AisSystem {
         "AIS System"
     }
 
-    fn update(&mut self, _yacht_data: &YachtData, _time: &Time) {
+    fn update(&mut self, _yacht_data: &VesselData, _time: &Time) {
         // AIS system is relatively static, but we could simulate
         // vessel movements or signal strength variations here
     }
 
-    fn render_display(&self, _yacht_data: &YachtData) -> String {
+    fn render_display(&self, _yacht_data: &VesselData) -> String {
         format!(
             "AIS - AUTOMATIC IDENTIFICATION SYSTEM\n\n\
             Status: {}\n\
@@ -345,7 +345,7 @@ impl YachtSystem for AisSystem {
 }
 
 /// Helper function to create and register all yacht systems
-pub fn create_yacht_systems() -> Vec<Box<dyn YachtSystem>> {
+pub fn create_vessel_systems() -> Vec<Box<dyn VesselSystem>> {
     vec![
         Box::new(GpsSystem::new()),
         Box::new(RadarSystem::new()),
@@ -364,7 +364,7 @@ mod tests {
         assert_eq!(gps.display_name(), "GPS Navigation");
         assert_eq!(gps.status(), SystemStatus::Active);
 
-        let yacht_data = YachtData::default();
+        let yacht_data = VesselData::default();
         let display = gps.render_display(&yacht_data);
         assert!(display.contains("GPS NAVIGATION SYSTEM"));
         assert!(display.contains("Satellites: 12 connected"));
@@ -378,7 +378,7 @@ mod tests {
 
         // Test configuration
         assert!(radar.handle_interaction(SystemInteraction::Configure("range".to_string(), "24".to_string())));
-        let display = radar.render_display(&YachtData::default());
+        let display = radar.render_display(&VesselData::default());
         assert!(display.contains("24 NM RANGE"));
     }
 
@@ -395,7 +395,7 @@ mod tests {
 
     #[test]
     fn test_create_yacht_systems() {
-        let systems = create_yacht_systems();
+        let systems = create_vessel_systems();
         assert_eq!(systems.len(), 3);
 
         let ids: Vec<&str> = systems.iter().map(|s| s.id()).collect();

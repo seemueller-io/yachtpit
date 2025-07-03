@@ -1,7 +1,8 @@
 use bevy::prelude::Time;
 use components::VesselData;
 use crate::{SystemInteraction, SystemStatus, VesselSystem};
-use datalink::{DataLink, DataLinkConfig, DataLinkReceiver, DataMessage, SimulationDataLink};
+use datalink::{DataLink, DataLinkConfig, DataLinkReceiver, DataMessage};
+use datalink_provider::AisDataLinkProvider;
 use std::collections::HashMap;
 
 /// AIS (Automatic Identification System) implementation
@@ -9,18 +10,25 @@ pub struct AisSystem {
     status: SystemStatus,
     own_mmsi: u32,
     receiving: bool,
-    datalink: SimulationDataLink,
+    datalink: AisDataLinkProvider,
     vessel_data: HashMap<String, DataMessage>,
 }
 
 impl AisSystem {
     pub fn new() -> Self {
-        let mut datalink = SimulationDataLink::new();
-        let config = DataLinkConfig::new("simulation".to_string());
+        let mut datalink = AisDataLinkProvider::new();
 
-        // Connect to the simulation datalink
+        // Configure for serial AIS receiver (default configuration)
+        // This can be customized based on available hardware
+        let config = DataLinkConfig::new("ais".to_string())
+            .with_parameter("connection_type".to_string(), "serial".to_string())
+            .with_parameter("port".to_string(), "/dev/ttyUSB0".to_string())
+            .with_parameter("baud_rate".to_string(), "38400".to_string());
+
+        // Try to connect to the AIS datalink
+        // If it fails, the system will still work but won't receive real AIS data
         if let Err(e) = datalink.connect(&config) {
-            eprintln!("Failed to connect AIS datalink: {}", e);
+            eprintln!("Failed to connect AIS datalink: {} (falling back to no external data)", e);
         }
 
         Self {
@@ -47,11 +55,26 @@ impl VesselSystem for AisSystem {
         if self.receiving && self.datalink.is_connected() {
             if let Ok(messages) = self.datalink.receive_all_messages() {
                 for message in messages {
-                    if message.message_type == "AIS_POSITION" {
-                        // Store vessel data by MMSI
-                        if let Some(mmsi) = message.get_data("mmsi") {
-                            self.vessel_data.insert(mmsi.clone(), message);
-                        }
+                    if message.message_type == "AIS_SENTENCE" {
+                        // Process AIS sentence and extract vessel information
+                        // For now, we'll create a mock vessel entry based on the sentence
+                        // In a real implementation, you would decode the AIS payload
+                        let mmsi = format!("AIS_{}", message.source_id);
+
+                        // Create a processed message with basic vessel data
+                        let mut processed_message = message.clone();
+                        processed_message.message_type = "AIS_POSITION".to_string();
+
+                        // Add mock vessel data (in real implementation, decode from payload)
+                        processed_message = processed_message
+                            .with_data("mmsi".to_string(), mmsi.clone())
+                            .with_data("vessel_name".to_string(), format!("VESSEL_{}", message.source_id))
+                            .with_data("latitude".to_string(), "37.7749".to_string())
+                            .with_data("longitude".to_string(), "-122.4194".to_string())
+                            .with_data("speed".to_string(), "0.0".to_string())
+                            .with_data("course".to_string(), "0".to_string());
+
+                        self.vessel_data.insert(mmsi, processed_message);
                     }
                 }
             }

@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/yachtpit", "crates/yachtpit/mobile", "crates/systems", "crates/components", "crates/datalink"]
+members = ["crates/yachtpit", "crates/yachtpit/mobile", "crates/systems", "crates/components", "crates/datalink", "crates/datalink-provider"]
 resolver = "2"
 
 default-members = [

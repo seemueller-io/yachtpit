@@ -1,7 +1,10 @@
 use bevy::prelude::Time;
 use components::VesselData;
 use crate::{SystemInteraction, SystemStatus, VesselSystem};
-use datalink::{DataLink, DataLinkConfig, DataLinkReceiver, DataMessage};
+use datalink::DataMessage;
+#[cfg(not(target_arch = "wasm32"))]
+use datalink::{DataLink, DataLinkConfig, DataLinkReceiver};
+#[cfg(not(target_arch = "wasm32"))]
 use datalink_provider::AisDataLinkProvider;
 use std::collections::HashMap;
 
@@ -10,31 +13,38 @@ pub struct AisSystem {
     status: SystemStatus,
     own_mmsi: u32,
     receiving: bool,
+    #[cfg(not(target_arch = "wasm32"))]
     datalink: AisDataLinkProvider,
     vessel_data: HashMap<String, DataMessage>,
 }
 
 impl AisSystem {
     pub fn new() -> Self {
-        let mut datalink = AisDataLinkProvider::new();
+        #[cfg(not(target_arch = "wasm32"))]
+        let datalink = {
+            let mut datalink = AisDataLinkProvider::new();
 
-        // Configure for serial AIS receiver (default configuration)
-        // This can be customized based on available hardware
-        let config = DataLinkConfig::new("ais".to_string())
-            .with_parameter("connection_type".to_string(), "serial".to_string())
-            .with_parameter("port".to_string(), "/dev/ttyUSB0".to_string())
-            .with_parameter("baud_rate".to_string(), "38400".to_string());
+            // Configure for serial AIS receiver (default configuration)
+            // This can be customized based on available hardware
+            let config = DataLinkConfig::new("ais".to_string())
+                .with_parameter("connection_type".to_string(), "serial".to_string())
+                .with_parameter("port".to_string(), "/dev/ttyUSB0".to_string())
+                .with_parameter("baud_rate".to_string(), "38400".to_string());
 
-        // Try to connect to the AIS datalink
-        // If it fails, the system will still work but won't receive real AIS data
-        if let Err(e) = datalink.connect(&config) {
-            eprintln!("Failed to connect AIS datalink: {} (falling back to no external data)", e);
-        }
+            // Try to connect to the AIS datalink
+            // If it fails, the system will still work but won't receive real AIS data
+            if let Err(e) = datalink.connect(&config) {
+                eprintln!("Failed to connect AIS datalink: {} (falling back to no external data)", e);
+            }
+
+            datalink
+        };
 
         Self {
             status: SystemStatus::Active,
             own_mmsi: 123456789,
             receiving: true,
+            #[cfg(not(target_arch = "wasm32"))]
             datalink,
             vessel_data: HashMap::new(),
         }
@@ -52,6 +62,7 @@ impl VesselSystem for AisSystem {
 
     fn update(&mut self, _yacht_data: &VesselData, _time: &Time) {
         // Receive new AIS messages from the datalink
+        #[cfg(not(target_arch = "wasm32"))]
         if self.receiving && self.datalink.is_connected() {
             if let Ok(messages) = self.datalink.receive_all_messages() {
                 for message in messages {
@@ -82,6 +93,17 @@ impl VesselSystem for AisSystem {
     }
 
     fn render_display(&self, _yacht_data: &VesselData) -> String {
+        let datalink_status = {
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                if self.datalink.is_connected() { "CONNECTED" } else { "DISCONNECTED" }
+            }
+            #[cfg(target_arch = "wasm32")]
+            {
+                "OFFLINE"
+            }
+        };
+
         let mut display = format!(
             "AIS - AUTOMATIC IDENTIFICATION SYSTEM\n\n\
             Status: {}\n\
@@ -91,7 +113,7 @@ impl VesselSystem for AisSystem {
             NEARBY VESSELS:\n",
             if self.receiving { "RECEIVING" } else { "STANDBY" },
             self.own_mmsi,
-            if self.datalink.is_connected() { "CONNECTED" } else { "DISCONNECTED" }
+            datalink_status
         );
 
         if self.vessel_data.is_empty() {

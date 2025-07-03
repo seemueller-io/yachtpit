@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use components::{setup_instrument_cluster, VesselData, update_vessel_data, update_instrument_displays};
-use super::vessel_systems::{create_vessel_systems, VesselSystem};
+use crate::vessel::vessel_systems::{create_vessel_systems, VesselSystem};
 
 pub struct PlayerPlugin;
 
@@ -20,7 +20,7 @@ pub fn setup_instrument_cluster_system() -> impl Fn(Commands) {
     setup_instrument_cluster
 }
 
-/// Initialize marine systems - returns the systems for registration
+/// Initialize vessel systems - returns the systems for registration
 pub fn get_vessel_systems() -> Vec<Box<dyn VesselSystem>> {
     create_vessel_systems()
 }

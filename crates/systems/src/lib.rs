@@ -1,9 +1,10 @@
 #![allow(clippy::type_complexity)]
 
-pub mod player;
-mod marine;
-use marine::*;
-
+mod world;
+mod vessel;
+mod ais;
+mod gps;
+mod radar;
 
 // Re-export components from the components crate
 pub use components::{
@@ -12,5 +13,6 @@ pub use components::{
     InstrumentCluster, GpsIndicator, RadarIndicator, AisIndicator, SystemDisplay
 };
 
-pub use player::{get_vessel_systems, setup_instrument_cluster_system, PlayerPlugin};
-pub use vessel_systems::{create_vessel_systems, AisSystem, GpsSystem, RadarSystem, SystemInteraction, SystemStatus, VesselSystem};
+
+pub use world::player::{get_vessel_systems, setup_instrument_cluster_system, PlayerPlugin};
+pub use vessel::vessel_systems::{create_vessel_systems, AisSystem, GpsSystem, RadarSystem, SystemInteraction, SystemStatus, VesselSystem};

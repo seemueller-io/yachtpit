@@ -13,9 +13,7 @@ use crate::core::system_manager::SystemManager;
 use crate::ui::{LoadingPlugin, MenuPlugin};
 use systems::{PlayerPlugin, setup_instrument_cluster, get_vessel_systems};
 
-// This game uses States to separate logic
 // See https://bevy-cheatbook.github.io/programming/states.html
-// Or https://github.com/bevyengine/bevy/blob/main/examples/ecs/state.rs
 #[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
 enum GameState {
     // During the loading State the LoadingPlugin will load our assets
@@ -29,8 +27,8 @@ enum GameState {
 
 pub struct GamePlugin;
 
-/// Initialize yacht systems in the SystemManager
-fn initialize_yacht_systems(mut system_manager: ResMut<SystemManager>) {
+/// Initialize systems in the SystemManager
+fn initialize_vessel_systems(mut system_manager: ResMut<SystemManager>) {
     let systems = get_vessel_systems();
     for system in systems {
         system_manager.register_system(system);
@@ -46,7 +44,7 @@ impl Plugin for GamePlugin {
             SystemManagerPlugin,
             PlayerPlugin,
         ))
-        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_yacht_systems));
+        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems));
 
         #[cfg(debug_assertions)]
         {

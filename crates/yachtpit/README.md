@@ -2,7 +2,7 @@
 This is the main application crate for yachtpit.
 
 ## Overview
-The `yachtpit` crate unifies components and systems into an application. 
+The `yachtpit` crate unifies components and systems into an application.
 It supports several runtimes to include web, desktop, and mobile platforms.
 
 ## Usage

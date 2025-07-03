@@ -31,6 +31,8 @@ fn main() {
                 primary_window: Some(Window {
                     resizable: false,
                     mode: WindowMode::BorderlessFullscreen(MonitorSelection::Current),
+                    transparent: true,
+                    canvas: Some("#yachtpit-canvas".to_string()),
                     ..default()
                 }),
                 ..default()
@@ -39,3 +41,4 @@ fn main() {
         ))
         .run();
 }
+

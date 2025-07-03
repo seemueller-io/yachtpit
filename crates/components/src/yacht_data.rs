@@ -71,9 +71,7 @@ pub fn update_instrument_displays(
 
     // Update compass display
     for mut text in compass_query.iter_mut() {
-        if text.0.contains('°') {
-            text.0 = format!("{:03.0}°", yacht_data.heading);
-        }
+            text.0 = format!("{:03.0}", yacht_data.heading);
     }
 }
 

@@ -4,6 +4,8 @@ use bevy::color::Color;
 pub const BACKGROUND_COLOR_PRIMARY: Color = Color::linear_rgb(0.05, 0.05, 0.1);
 pub const BACKGROUND_COLOR_SECONDARY: Color = Color::linear_rgb(0.1, 0.1, 0.15);
 pub const BACKGROUND_COLOR_ACCENT: Color = Color::linear_rgb(0.1, 0.15, 0.2);
+pub const BACKGROUND_COLOR_TRANSPARENT: Color = Color::srgba(0.0, 0.0, 0.0, 0.0);
+
 
 pub const BORDER_COLOR_PRIMARY: Color = Color::linear_rgb(0.0, 0.8, 1.0);
 pub const BORDER_COLOR_SECONDARY: Color = Color::linear_rgb(0.8, 0.4, 0.0);

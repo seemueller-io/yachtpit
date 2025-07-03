@@ -120,7 +120,7 @@ pub fn update_system_display(
                 );
             }
             None => {
-                text.0 = "Select a system above to view details".to_string();
+                text.0 = "".to_string();
             }
         }
     }

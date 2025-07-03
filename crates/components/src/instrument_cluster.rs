@@ -9,6 +9,7 @@ use super::navigation_display::NavigationDisplay;
 use super::system_display::{SystemDisplay, SystemIndicator, SystemDisplayArea};
 use super::wind_display::WindDisplay;
 
+
 /// Main instrument cluster component
 #[derive(Component)]
 pub struct InstrumentCluster;
@@ -21,7 +22,8 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
     // Create main container using composition
     commands.spawn((
         main_container_node(),
-        BackgroundColor(BACKGROUND_COLOR_PRIMARY),
+        // this container should be transparent
+        BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
         InstrumentCluster,
     ))
     .with_children(|parent| {
@@ -31,20 +33,20 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
             // Speed Gauge
             row.spawn((
                 circular_gauge_node(),
-                BackgroundColor(BACKGROUND_COLOR_PRIMARY),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
                 BorderColor(BORDER_COLOR_PRIMARY),
                 SpeedGauge,
             ))
             .with_children(|gauge| {
                 gauge.spawn(create_text("SPEED", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
                 gauge.spawn(create_text("12.5", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
-                gauge.spawn(create_text("KTS", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
+                gauge.spawn(create_text("KTS", FONT_SIZE_SMALL, TEXT_COLOR_SECONDARY));
             });
 
             // Central Navigation Display
             row.spawn((
                 navigation_display_node(),
-                BackgroundColor(BACKGROUND_COLOR_ACCENT),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
                 BorderColor(BORDER_COLOR_PRIMARY),
                 NavigationDisplay,
             ))
@@ -56,19 +58,19 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                     create_text("045°", FONT_SIZE_LARGE, TEXT_COLOR_PRIMARY).2,
                     CompassGauge,
                 ));
-                nav.spawn(create_text("HEADING", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
+                nav.spawn(create_text("HEADING", FONT_SIZE_NORMAL, TEXT_COLOR_SECONDARY));
             });
 
             // Depth Gauge
             row.spawn((
                 circular_gauge_node(),
-                BackgroundColor(BACKGROUND_COLOR_PRIMARY),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
                 BorderColor(BORDER_COLOR_PRIMARY),
                 DepthGauge,
             ))
             .with_children(|gauge| {
                 gauge.spawn(create_text("DEPTH", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
-                gauge.spawn(create_text("15.2", FONT_SIZE_LARGE, Color::linear_rgb(0.0, 1.0, 0.8)));
+                gauge.spawn(create_text("15.2", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
                 gauge.spawn(create_text("M", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
             });
         });
@@ -79,24 +81,24 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
             // Engine Status Panel
             row.spawn((
                 status_panel_node(200.0, 150.0),
-                BackgroundColor(BACKGROUND_COLOR_PRIMARY),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
                 BorderColor(BORDER_COLOR_PRIMARY),
                 EngineStatus,
             ))
             .with_children(|panel| {
                 panel.spawn(create_text("ENGINE", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
-                panel.spawn(create_text("82°C", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
+                panel.spawn(create_text("82 C", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
                 panel.spawn(create_text("TEMP NORMAL", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
             });
 
             // System Status Grid
             row.spawn((
                 status_panel_node(250.0, 150.0),
-                BackgroundColor(BACKGROUND_COLOR_SECONDARY),
-                BorderColor(BORDER_COLOR_SECONDARY),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
+                BorderColor(BORDER_COLOR_PRIMARY),
             ))
             .with_children(|grid| {
-                grid.spawn(create_text("SYSTEMS", 12.0, TEXT_COLOR_SECONDARY));
+                grid.spawn(create_text("SYSTEMS", 12.0, TEXT_COLOR_PRIMARY));
 
                 // Fuel Level Bar
                 grid.spawn(progress_bar_node())
@@ -109,7 +111,7 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                             BackgroundColor(TEXT_COLOR_SUCCESS),
                         ));
                     });
-                    bar.spawn(create_text("75%", FONT_SIZE_SMALL, TEXT_COLOR_SUCCESS));
+                    bar.spawn(create_text("75%", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
                 });
 
                 // Battery Level Bar
@@ -123,7 +125,7 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                             BackgroundColor(TEXT_COLOR_SUCCESS),
                         ));
                     });
-                    bar.spawn(create_text("88%", FONT_SIZE_SMALL, TEXT_COLOR_SUCCESS));
+                    bar.spawn(create_text("88%", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
                 });
 
                 // System Indicators Row
@@ -161,7 +163,7 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                         },
                     ))
                     .with_children(|indicator| {
-                        indicator.spawn(create_text("RADAR", FONT_SIZE_NORMAL, Color::linear_rgb(0.0, 1.0, 0.0)));
+                        indicator.spawn(create_text("RADAR", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
                     });
 
                     // AIS Indicator
@@ -183,14 +185,14 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
             // Wind Information
             row.spawn((
                 status_panel_node(200.0, 150.0),
-                BackgroundColor(BACKGROUND_COLOR_ACCENT),
+                BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
                 BorderColor(BORDER_COLOR_PRIMARY),
                 WindDisplay,
             ))
             .with_children(|panel| {
                 panel.spawn(create_text("WIND", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
                 panel.spawn(create_text("8.3 KTS", FONT_SIZE_NORMAL, TEXT_COLOR_SUCCESS));
-                panel.spawn(create_text("120° REL", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
+                panel.spawn(create_text("120 deg REL", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY));
             });
         });
 
@@ -206,13 +208,12 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
                 padding: UiRect::all(Val::Px(20.0)),
                 ..default()
             },
-            BackgroundColor(BACKGROUND_COLOR_PRIMARY),
-            BorderColor(BORDER_COLOR_PRIMARY),
+            BackgroundColor(BACKGROUND_COLOR_TRANSPARENT),
             SystemDisplay,
         ))
         .with_children(|display| {
             display.spawn((
-                Text::new("Select a system above to view details"),
+                create_text("", FONT_SIZE_NORMAL, TEXT_COLOR_PRIMARY).0,
                 TextFont {
                     font_size: FONT_SIZE_SMALL,
                     ..default()

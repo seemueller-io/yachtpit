@@ -2,5 +2,13 @@
 public_url = "./"
 wasm_bindgen = "0.2.100"
 
+[tools.wasm-bindgen]
+# Enable wasm-opt for size optimization
+wasm-opt = ["-Oz", "--enable-bulk-memory"]
+
+[tools.wasm-opt]
+# Additional wasm-opt optimizations for size
+options = ["-Oz", "--enable-bulk-memory", "--enable-sign-ext", "--enable-mutable-globals"]
+
 [serve]
 port = 8080

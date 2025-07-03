@@ -10,7 +10,7 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
 use crate::core::{ActionsPlugin, SystemManagerPlugin};
 use crate::core::system_manager::SystemManager;
-use crate::ui::{LoadingPlugin, MenuPlugin};
+use crate::ui::{LoadingPlugin, MenuPlugin, GpsMapPlugin};
 use systems::{PlayerPlugin, setup_instrument_cluster, get_vessel_systems};
 
 // See https://bevy-cheatbook.github.io/programming/states.html
@@ -40,6 +40,7 @@ impl Plugin for GamePlugin {
         app.init_state::<GameState>().add_plugins((
             LoadingPlugin,
             MenuPlugin,
+            GpsMapPlugin,
             ActionsPlugin,
             SystemManagerPlugin,
             PlayerPlugin,

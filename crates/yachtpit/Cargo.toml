@@ -63,6 +63,13 @@ systems = { path = "../systems" }
 components = { path = "../components" }
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Document", "Element", "HtmlElement", "Window"] }
+reqwest = { version = "0.12", features = ["json"] }
+# Platform-specific tokio features
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { version = "1.0", features = ["rt", "rt-multi-thread"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tokio = { version = "1.0", features = ["rt"] }
 
 # keep the following in sync with Bevy's dependencies
 winit = { version = "0.30", default-features = false }

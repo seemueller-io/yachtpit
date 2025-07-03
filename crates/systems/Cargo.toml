@@ -17,3 +17,4 @@ bevy = { workspace = true, features = [
 ] }
 rand = { version = "0.8.3" }
 components = { path = "../components" }
+datalink = { path = "../datalink" }

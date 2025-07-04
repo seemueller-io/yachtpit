@@ -8,7 +8,7 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 use systems::{VesselSystem, SystemInteraction, SystemStatus};
 use components::{VesselData, SystemIndicator, SystemDisplayArea};
-use crate::ui::{spawn_gps_map_window, GpsMapState};
+// use crate::ui::{spawn_gps_map_window, GpsMapState};
 
 /// Resource for managing all yacht systems
 #[derive(Resource)]
@@ -123,7 +123,7 @@ fn update_all_systems(
 fn handle_system_indicator_interactions(
     mut commands: Commands,
     mut system_manager: ResMut<SystemManager>,
-    mut gps_map_state: ResMut<GpsMapState>,
+    // mut gps_map_state: ResMut<GpsMapState>,
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &SystemIndicator),
         (Changed<Interaction>, With<Button>),
@@ -139,9 +139,9 @@ fn handle_system_indicator_interactions(
                 );
 
                 // If GPS system is selected, spawn the map window
-                if indicator.system_id == "gps" {
-                    spawn_gps_map_window(&mut commands, &mut gps_map_state);
-                }
+                // if indicator.system_id == "gps" {
+                //     spawn_gps_map_window(&mut commands, &mut gps_map_state);
+                // }
 
                 *background_color = BackgroundColor(Color::linear_rgb(0.0, 0.3, 0.5));
             }

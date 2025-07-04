@@ -1,27 +1,20 @@
 use bevy::prelude::*;
 use bevy::window::Window;
-use std::collections::HashMap;
+// use bevy_slippy_tiles::*;  // Temporarily disabled due to ehttp compatibility issues
 
 /// Component to mark the GPS map window
 #[derive(Component)]
 pub struct GpsMapWindow;
 
-/// Component to mark map tiles
-#[derive(Component)]
-pub struct MapTile {
-    pub x: i32,
-    pub y: i32,
-    pub zoom: u8,
-}
 
 /// Resource to manage the GPS map state
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct GpsMapState {
     pub window_id: Option<Entity>,
     pub center_lat: f64,
     pub center_lon: f64,
     pub zoom_level: u8,
-    pub tile_cache: HashMap<String, Handle<Image>>,
+    pub tiles_requested: bool,
 }
 
 impl GpsMapState {
@@ -31,7 +24,7 @@ impl GpsMapState {
             center_lat: 43.6377, // Default to Monaco coordinates from GPS system
             center_lon: -1.4497,
             zoom_level: 10,
-            tile_cache: HashMap::new(),
+            tiles_requested: false,
         }
     }
 }
@@ -41,10 +34,10 @@ pub struct GpsMapPlugin;
 
 impl Plugin for GpsMapPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<GpsMapState>()
+        app.insert_resource(GpsMapState::new())
             .add_systems(Update, (
                 handle_gps_map_window_events,
-                update_map_tiles,
+                // request_slippy_tiles_system,  // Temporarily disabled due to ehttp compatibility issues
             ));
     }
 }
@@ -66,67 +59,37 @@ fn handle_gps_map_window_events(
     }
 }
 
-/// System to update map tiles
-fn update_map_tiles(
+/// System to request slippy tiles for the GPS map
+// Temporarily disabled due to ehttp compatibility issues
+/*
+fn request_slippy_tiles_system(
     mut commands: Commands,
-    gps_map_state: Res<GpsMapState>,
-    asset_server: Res<AssetServer>,
-    map_tiles: Query<Entity, With<MapTile>>,
+    mut gps_map_state: ResMut<GpsMapState>,
+    mut download_slippy_tile_events: EventWriter<DownloadSlippyTilesEvent>,
 ) {
     if gps_map_state.window_id.is_none() {
         return;
     }
 
-    // For now, we'll create a simple placeholder map
-    // In a full implementation, this would fetch actual OSM tiles
-    if map_tiles.is_empty() {
-        spawn_placeholder_map(&mut commands, &asset_server);
+    // Request tiles only once when the map is first opened
+    if !gps_map_state.tiles_requested {
+        // Create slippy tile event
+        let slippy_tile_event = DownloadSlippyTilesEvent {
+            tile_size: TileSize::Normal,    // Size of tiles - Normal = 256px, Large = 512px
+            zoom_level: ZoomLevel::L18,     // Map zoom level (L0 = entire world, L19 = closest)
+            coordinates: Coordinates::from_latitude_longitude(gps_map_state.center_lat, gps_map_state.center_lon),
+            radius: Radius(2),              // Request surrounding tiles (2 = 25 tiles total)
+            use_cache: true,                // Use cached tiles if available
+        };
+        download_slippy_tile_events.send(slippy_tile_event);
+        gps_map_state.tiles_requested = true;
+
+        info!("Requested slippy tiles for GPS map at lat: {}, lon: {}", 
+              gps_map_state.center_lat, gps_map_state.center_lon);
     }
 }
+*/
 
-/// Spawn a placeholder map with basic tiles
-fn spawn_placeholder_map(commands: &mut Commands, _asset_server: &Res<AssetServer>) {
-    // Create a simple grid of colored rectangles to represent map tiles
-    for x in -2..=2 {
-        for y in -2..=2 {
-            let color = if (x + y) % 2 == 0 {
-                Color::linear_rgb(0.3, 0.7, 0.3) // Green for land
-            } else {
-                Color::linear_rgb(0.2, 0.4, 0.8) // Blue for water
-            };
-
-            commands.spawn((
-                Sprite {
-                    color,
-                    custom_size: Some(Vec2::new(256.0, 256.0)),
-                    ..default()
-                },
-                Transform::from_translation(Vec3::new(
-                    x as f32 * 256.0,
-                    y as f32 * 256.0,
-                    0.0,
-                )),
-                MapTile {
-                    x,
-                    y,
-                    zoom: 10,
-                },
-                GpsMapWindow,
-            ));
-        }
-    }
-
-    // Add a marker for the vessel position
-    commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(1.0, 0.0, 0.0),
-            custom_size: Some(Vec2::new(20.0, 20.0)),
-            ..default()
-        },
-        Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-        GpsMapWindow,
-    ));
-}
 
 /// Function to spawn the GPS map window
 pub fn spawn_gps_map_window(

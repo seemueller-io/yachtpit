@@ -59,11 +59,13 @@ bevy_kira_audio = { version = "0.23.0", features = ["android_shared_stdcxx"] }
 bevy_asset_loader = { version = "0.23.0" }
 rand = { version = "0.8.3" }
 webbrowser = { version = "1", features = ["hardened"] }
+reqwest = { version = "0.11", features = ["json"] }
+# bevy_slippy_tiles = "0.9.0"  # Temporarily disabled due to ehttp compatibility issues
+# ehttp = "0.4"
 systems = { path = "../systems" }
 components = { path = "../components" }
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3", features = ["Document", "Element", "HtmlElement", "Window"] }
-reqwest = { version = "0.12", features = ["json"] }
 # Platform-specific tokio features
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1.0", features = ["rt", "rt-multi-thread"] }
@@ -72,8 +74,8 @@ tokio = { version = "1.0", features = ["rt", "rt-multi-thread"] }
 tokio = { version = "1.0", features = ["rt"] }
 
 # keep the following in sync with Bevy's dependencies
-winit = { version = "0.30", default-features = false }
-image = { version = "0.25", default-features = false }
+winit = { version = "0.30", default-features = false, features = ["rwh_05"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
 ## This greatly improves WGPU's performance due to its heavy use of trace! calls
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 

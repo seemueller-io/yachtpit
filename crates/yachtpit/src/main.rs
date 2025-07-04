@@ -8,6 +8,7 @@ use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 use yachtpit::GamePlugin;
 use std::io::Cursor;
+use bevy_webview_wry::WebviewWryPlugin;
 use winit::window::Icon;
 
 fn main() {
@@ -33,9 +34,9 @@ fn main() {
         )
         .add_plugins(GamePlugin)
         .add_systems(Startup, set_window_icon)
+        .add_plugins(WebviewWryPlugin::default())
         .run();
 }
-
 // Sets the icon on windows and X11
 fn set_window_icon(
     windows: NonSend<WinitWindows>,

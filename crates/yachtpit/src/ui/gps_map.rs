@@ -1,6 +1,10 @@
 use bevy::prelude::*;
+use bevy::render::view::RenderLayers;
 use bevy::window::Window;
 use std::collections::HashMap;
+use bevy_webview_wry::prelude::*;
+/// Render layer for GPS map entities to isolate them from other cameras
+const GPS_MAP_LAYER: usize = 1;
 
 /// Component to mark the GPS map window
 #[derive(Component)]
@@ -79,7 +83,7 @@ fn update_map_tiles(
 
     // For now, we'll create a simple placeholder map
     // In a full implementation, this would fetch actual OSM tiles
-    if map_tiles.is_empty() {
+    if map_tiles.is_empty() && gps_map_state.window_id.is_some() {
         spawn_placeholder_map(&mut commands, &asset_server);
     }
 }
@@ -96,35 +100,34 @@ fn spawn_placeholder_map(commands: &mut Commands, _asset_server: &Res<AssetServe
             };
 
             commands.spawn((
+                GpsMapWindow,
+                Transform::from_translation(Vec3::new(x as f32 * 100.0, y as f32 * 100.0, 0.0)),
+                GlobalTransform::default(),
                 Sprite {
                     color,
-                    custom_size: Some(Vec2::new(256.0, 256.0)),
+                    custom_size: Some(Vec2::new(100.0, 100.0)),
                     ..default()
                 },
-                Transform::from_translation(Vec3::new(
-                    x as f32 * 256.0,
-                    y as f32 * 256.0,
-                    0.0,
-                )),
                 MapTile {
-                    x,
-                    y,
+                    x: x as i32,
+                    y: y as i32,
                     zoom: 10,
                 },
-                GpsMapWindow,
+                RenderLayers::layer(GPS_MAP_LAYER),
             ));
         }
     }
 
     // Add a marker for the vessel position
     commands.spawn((
-        Sprite {
-            color: Color::linear_rgb(1.0, 0.0, 0.0),
-            custom_size: Some(Vec2::new(20.0, 20.0)),
-            ..default()
-        },
-        Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+        // Sprite {
+        //     color: Color::linear_rgb(1.0, 0.0, 0.0),
+        //     custom_size: Some(Vec2::new(20.0, 20.0)),
+        //     ..default()
+        // },
+        // Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
         GpsMapWindow,
+        RenderLayers::layer(GPS_MAP_LAYER),
     ));
 }
 
@@ -158,10 +161,27 @@ pub fn spawn_gps_map_window(
             target: bevy::render::camera::RenderTarget::Window(bevy::window::WindowRef::Entity(window_entity)),
             ..default()
         },
+        RenderLayers::layer(GPS_MAP_LAYER),
         GpsMapWindow,
     ));
 
     gps_map_state.window_id = Some(window_entity);
 
+    spawn_gps_webview(commands, gps_map_state);
+    
+
+
     info!("GPS map window spawned with entity: {:?}", window_entity);
+}
+fn spawn_gps_webview(
+    commands: &mut Commands,
+    gps_map_state: &mut ResMut<GpsMapState>,
+) {
+    if let Some(win) = gps_map_state.window_id {
+        commands
+            .entity(win)
+            .insert(Webview::Uri(WebviewUri::new(
+                "https://www.openstreetmap.org/",   // or any URL you like
+            )));
+    }
 }

@@ -45,6 +45,7 @@ impl Plugin for GamePlugin {
             SystemManagerPlugin,
             PlayerPlugin,
         ))
+            
         .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems));
 
         #[cfg(debug_assertions)]

@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::window::Window;
-use bevy_webview_wry::prelude::*;
 use std::collections::HashMap;
+
+
+#[cfg(not(target_arch = "wasm32"))]
+use bevy_webview_wry::prelude::*;
+
 /// Render layer for GPS map entities to isolate them from other cameras
 const GPS_MAP_LAYER: usize = 1;
 
@@ -167,10 +171,15 @@ pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<
 
     gps_map_state.window_id = Some(window_entity);
 
-    spawn_gps_webview(commands, gps_map_state);
 
     info!("GPS map window spawned with entity: {:?}", window_entity);
+
+
+    #[cfg(not(target_arch = "wasm32"))]
+    spawn_gps_webview(commands, gps_map_state);
 }
+
+#[cfg(not(target_arch = "wasm32"))]
 fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     if let Some(win) = gps_map_state.window_id {
         commands.entity(win).insert(Webview::Uri(WebviewUri::relative_local(

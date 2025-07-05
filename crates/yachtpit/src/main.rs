@@ -8,10 +8,38 @@ use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
 use yachtpit::GamePlugin;
 use std::io::Cursor;
-use bevy_webview_wry::WebviewWryPlugin;
 use winit::window::Icon;
 
+#[cfg(not(target_arch = "wasm32"))]
+use bevy_webview_wry::WebviewWryPlugin;
+
 fn main() {
+    #[cfg(target_arch = "wasm32")]
+    App::new()
+        .insert_resource(ClearColor(Color::NONE))
+        .add_plugins(
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        // Bind to canvas included in `index.html`
+                        canvas: Some("#yachtpit-canvas".to_owned()),
+                        fit_canvas_to_parent: true,
+                        // Tells wasm not to override default event handling, like F5 and Ctrl+R
+                        prevent_default_event_handling: false,
+                        ..default()
+                    }),
+                    ..default()
+                })
+                .set(AssetPlugin {
+                    meta_check: AssetMetaCheck::Never,
+                    ..default()
+                }),
+        )
+        .add_plugins(GamePlugin)
+        .add_systems(Startup, set_window_icon)
+        .run();
+    
+    #[cfg(not(target_arch = "wasm32"))]
     App::new()
         .insert_resource(ClearColor(Color::NONE))
         .add_plugins(
@@ -36,6 +64,7 @@ fn main() {
         .add_systems(Startup, set_window_icon)
         .add_plugins(WebviewWryPlugin::default())
         .run();
+
 }
 // Sets the icon on windows and X11
 fn set_window_icon(

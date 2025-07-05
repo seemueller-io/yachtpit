@@ -38,7 +38,7 @@ fn main() {
         .add_plugins(GamePlugin)
         .add_systems(Startup, set_window_icon)
         .run();
-    
+
     #[cfg(not(target_arch = "wasm32"))]
     App::new()
         .insert_resource(ClearColor(Color::NONE))

@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::window::Window;
 use std::collections::HashMap;
+use bevy_webview_wry::prelude::*;
+/// Render layer for GPS map entities to isolate them from other cameras
 
 
 #[cfg(not(target_arch = "wasm32"))]

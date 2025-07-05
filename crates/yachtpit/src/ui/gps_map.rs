@@ -4,6 +4,12 @@ use bevy::window::Window;
 use std::collections::HashMap;
 use bevy_webview_wry::prelude::*;
 /// Render layer for GPS map entities to isolate them from other cameras
+
+
+#[cfg(not(target_arch = "wasm32"))]
+use bevy_webview_wry::prelude::*;
+
+/// Render layer for GPS map entities to isolate them from other cameras
 const GPS_MAP_LAYER: usize = 1;
 
 /// Component to mark the GPS map window
@@ -46,10 +52,7 @@ pub struct GpsMapPlugin;
 impl Plugin for GpsMapPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GpsMapState>()
-            .add_systems(Update, (
-                handle_gps_map_window_events,
-                update_map_tiles,
-            ));
+            .add_systems(Update, (handle_gps_map_window_events, update_map_tiles));
     }
 }
 
@@ -132,10 +135,7 @@ fn spawn_placeholder_map(commands: &mut Commands, _asset_server: &Res<AssetServe
 }
 
 /// Function to spawn the GPS map window
-pub fn spawn_gps_map_window(
-    commands: &mut Commands,
-    gps_map_state: &mut ResMut<GpsMapState>,
-) {
+pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     if gps_map_state.window_id.is_some() {
         info!("GPS map window already open");
         return;
@@ -144,21 +144,27 @@ pub fn spawn_gps_map_window(
     info!("Spawning GPS map window");
 
     // Create a new window for the GPS map
-    let window_entity = commands.spawn((
-        Window {
-            title: "GPS Navigation - OpenStreetMap".to_string(),
-            resolution: (800.0, 600.0).into(),
-            position: bevy::window::WindowPosition::Centered(bevy::window::MonitorSelection::Current),
-            ..default()
-        },
-        GpsMapWindow,
-    )).id();
+    let window_entity = commands
+        .spawn((
+            Window {
+                title: "GPS Navigation - OpenStreetMap".to_string(),
+                resolution: (800.0, 600.0).into(),
+                position: bevy::window::WindowPosition::Centered(
+                    bevy::window::MonitorSelection::Current,
+                ),
+                ..default()
+            },
+            GpsMapWindow,
+        ))
+        .id();
 
     // Create a camera for the map window
     commands.spawn((
         Camera2d,
         Camera {
-            target: bevy::render::camera::RenderTarget::Window(bevy::window::WindowRef::Entity(window_entity)),
+            target: bevy::render::camera::RenderTarget::Window(bevy::window::WindowRef::Entity(
+                window_entity,
+            )),
             ..default()
         },
         RenderLayers::layer(GPS_MAP_LAYER),
@@ -167,21 +173,20 @@ pub fn spawn_gps_map_window(
 
     gps_map_state.window_id = Some(window_entity);
 
-    spawn_gps_webview(commands, gps_map_state);
-    
-
 
     info!("GPS map window spawned with entity: {:?}", window_entity);
+
+
+    #[cfg(not(target_arch = "wasm32"))]
+    spawn_gps_webview(commands, gps_map_state);
 }
-fn spawn_gps_webview(
-    commands: &mut Commands,
-    gps_map_state: &mut ResMut<GpsMapState>,
-) {
+
+#[cfg(not(target_arch = "wasm32"))]
+fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     if let Some(win) = gps_map_state.window_id {
-        commands
-            .entity(win)
-            .insert(Webview::Uri(WebviewUri::new(
-                "https://www.openstreetmap.org/",   // or any URL you like
-            )));
+        commands.entity(win).insert(Webview::Uri(WebviewUri::relative_local(
+            // Using the build output of the base-map package
+            "packages/base-map/dist/index.html",
+        )));
     }
 }

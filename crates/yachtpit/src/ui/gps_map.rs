@@ -175,7 +175,7 @@ fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapS
     if let Some(win) = gps_map_state.window_id {
         commands.entity(win).insert(Webview::Uri(WebviewUri::relative_local(
             // Using the local HTML file in assets
-            "gps-map/index.html",
+            "../../../../packages/gps-map/index.html",
         )));
     }
 }

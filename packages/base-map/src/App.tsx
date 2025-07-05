@@ -6,18 +6,29 @@ import Cookies from 'js-cookie';
 
 function App() {
     const [mapboxToken, setMapboxToken] = useState(() => Cookies.get('mapbox_token') || '');
+    const [isTokenLoading, setIsTokenLoading] = useState(false);
+    const [authenticated, setAuthenticated] = useState(false);
 
     useEffect(() => {
-        if (mapboxToken) {
+        const checkAndLoadToken = async () => {
+            const savedToken = Cookies.get('mapbox_token');
+            if (savedToken) {
+                setMapboxToken(savedToken);
+            }
+            setIsTokenLoading(false);
+        };
+        checkAndLoadToken();
+    }, []);
+
+    useEffect(() => {
+        if (!isTokenLoading && mapboxToken) {
             Cookies.set('mapbox_token', mapboxToken, {
                 secure: true,
                 sameSite: 'strict',
                 expires: 30  // 30 days
             });
-        } else {
-            Cookies.remove('mapbox_token');
         }
-    }, [mapboxToken]);
+    }, [mapboxToken, isTokenLoading]);
 
 
     return (
@@ -31,26 +42,35 @@ function App() {
                 <Button colorScheme="teal" size="sm" variant="solid">
                     Search
                 </Button>
-                {!mapboxToken && (
-                    <Input
-                        placeholder="Enter Mapbox token"
-                        size="sm"
-                        width="300px"
-                        value={mapboxToken}
-                        onChange={(e) => setMapboxToken(e.target.value)}
-                    />
+                {!authenticated && (
+                    <>
+                        <Input
+                            placeholder="Enter Mapbox token"
+                            size="sm"
+                            width="300px"
+                            value={mapboxToken}
+                            onChange={(e) => setMapboxToken(e.target.value)}
+                        />
+                        <Button
+                            colorScheme="green"
+                            size="sm"
+                            onClick={() => setAuthenticated(true)}
+                        >
+                            Set Mapbox token
+                        </Button>
+                    </>
                 )}
             </HStack>
 
             {/* Map itself */}
-            <Map
+            {authenticated && (<Map
                 mapboxAccessToken={mapboxToken}
-                initialViewState={{ longitude: -122.4, latitude: 37.8, zoom: 14 }}
+                initialViewState={{longitude: -122.4, latitude: 37.8, zoom: 14}}
                 mapStyle="mapbox://styles/mapbox/dark-v11"
                 reuseMaps
                 attributionControl={false}
-                style={{ width: '100%', height: '100%' }}  // let the wrapper dictate size
-            />
+                style={{width: '100%', height: '100%'}}  // let the wrapper dictate size
+            />)}
         </Box>
     );
 }

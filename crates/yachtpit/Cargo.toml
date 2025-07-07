@@ -6,8 +6,6 @@ authors = ["seemueller-io <git@github.geoffsee>"]
 edition = "2021"
 exclude = ["dist", "build", "assets", "credits"]
 
-
-
 [profile.dev.package."*"]
 opt-level = 3
 
@@ -63,6 +61,14 @@ systems = { path = "../systems" }
 components = { path = "../components" }
 wasm-bindgen = "0.2"
 web-sys = { version = "0.3.53", features = ["Document", "Element", "HtmlElement", "Window"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# keep the following in sync with Bevy's dependencies
+winit = { version = "0.30", default-features = false }
+image = { version = "0.25", default-features = false }
+## This greatly improves WGPU's performance due to its heavy use of trace! calls
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 
 # Platform-specific tokio features
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -70,15 +76,11 @@ tokio = { version = "1.0", features = ["rt", "rt-multi-thread"] }
 image = "0.25"
 winit = "0.30"
 bevy_webview_wry = { version = "0.4", default-features = false, features = ["api"] }
+bevy_flurx = "0.11"
+bevy_flurx_ipc = "0.4.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tokio = { version = "1.0", features = ["rt"] }
-
-# keep the following in sync with Bevy's dependencies
-winit = { version = "0.30", default-features = false }
-image = { version = "0.25", default-features = false }
-## This greatly improves WGPU's performance due to its heavy use of trace! calls
-log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 
 [build-dependencies]
 embed-resource = "1"

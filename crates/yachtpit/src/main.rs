@@ -12,6 +12,7 @@ use winit::window::Icon;
 
 #[cfg(not(target_arch = "wasm32"))]
 use bevy_webview_wry::WebviewWryPlugin;
+use serde::Deserialize;
 
 fn main() {
     #[cfg(target_arch = "wasm32")]
@@ -63,9 +64,23 @@ fn main() {
         .add_plugins(GamePlugin)
         .add_systems(Startup, set_window_icon)
         .add_plugins(WebviewWryPlugin::default())
+        .add_observer(apply_webview_message)
         .run();
 
 }
+
+/// default webview message serialization
+#[derive(Deserialize, Debug, Event)]
+struct MessageFromWebview {
+    message: String,
+}
+
+fn apply_webview_message(
+    trigger: Trigger<MessageFromWebview>,
+) {
+    info!("message from webview: {}", trigger.message);
+}
+
 // Sets the icon on windows and X11
 fn set_window_icon(
     windows: NonSend<WinitWindows>,

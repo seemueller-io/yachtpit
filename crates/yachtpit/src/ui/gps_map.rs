@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::window::Window;
 use std::collections::HashMap;
+use bevy_flurx::prelude::*;
 use bevy_webview_wry::prelude::*;
+use serde::{Deserialize, Serialize};
 /// Render layer for GPS map entities to isolate them from other cameras
 
 
@@ -11,6 +13,38 @@ use bevy_webview_wry::prelude::*;
 
 /// Render layer for GPS map entities to isolate them from other cameras
 const GPS_MAP_LAYER: usize = 1;
+
+/// GPS position data
+#[derive(Serialize, Debug, Clone)]
+pub struct GpsPosition {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub zoom: u8,
+}
+
+/// Vessel position and status data
+#[derive(Serialize, Debug, Clone)]
+pub struct VesselStatus {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub heading: f64,
+    pub speed: f64,
+}
+
+/// Map view change parameters
+#[derive(Deserialize, Debug, Clone)]
+pub struct MapViewParams {
+    pub latitude: f64,
+    pub longitude: f64,
+    pub zoom: u8,
+}
+
+/// Authentication parameters
+#[derive(Deserialize, Debug, Clone)]
+pub struct AuthParams {
+    pub authenticated: bool,
+    pub token: Option<String>,
+}
 
 /// Component to mark the GPS map window
 #[derive(Component)]
@@ -32,6 +66,10 @@ pub struct GpsMapState {
     pub center_lon: f64,
     pub zoom_level: u8,
     pub tile_cache: HashMap<String, Handle<Image>>,
+    pub vessel_lat: f64,
+    pub vessel_lon: f64,
+    pub vessel_heading: f64,
+    pub vessel_speed: f64,
 }
 
 impl GpsMapState {
@@ -42,6 +80,10 @@ impl GpsMapState {
             center_lon: -1.4497,
             zoom_level: 10,
             tile_cache: HashMap::new(),
+            vessel_lat: 43.6377, // Default vessel position
+            vessel_lon: -1.4497,
+            vessel_heading: 0.0,
+            vessel_speed: 0.0,
         }
     }
 }
@@ -52,7 +94,11 @@ pub struct GpsMapPlugin;
 impl Plugin for GpsMapPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GpsMapState>()
-            .add_systems(Update, (handle_gps_map_window_events, update_map_tiles));
+            .add_systems(Update, (
+                handle_gps_map_window_events, 
+                update_map_tiles,
+                send_periodic_gps_updates,
+            ));
     }
 }
 
@@ -184,9 +230,128 @@ pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<
 #[cfg(not(target_arch = "wasm32"))]
 fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     if let Some(win) = gps_map_state.window_id {
-        commands.entity(win).insert(Webview::Uri(WebviewUri::relative_local(
-            // Using the build output of the base-map package
-            "packages/base-map/dist/index.html",
-        )));
+
+
+        commands.entity(win).insert((
+            IpcHandlers::new([
+                navigation_clicked,
+                search_clicked,
+                map_view_changed,
+                auth_status_changed,
+                get_map_init,
+                get_vessel_status
+            ]),
+            Webview::Uri(WebviewUri::relative_local(
+                // Using the build output of the base-map package
+                "packages/base-map/dist/index.html",
+            ))
+        ));
+    }
+}
+
+// GPS Map IPC Commands using bevy_flurx_ipc
+
+/// Handle navigation button click
+#[command]
+fn navigation_clicked(
+    WebviewEntity(_entity): WebviewEntity,
+) -> Action<(), ()> {
+    once::run(|_: In<()>| {
+        info!("Navigation button clicked in React");
+        // Handle navigation logic here
+    }).into()
+}
+
+/// Handle search button click
+#[command]
+fn search_clicked(
+    WebviewEntity(_entity): WebviewEntity,
+) -> Action<(), ()> {
+    once::run(|_: In<()>| {
+        info!("Search button clicked in React");
+        // Handle search logic here
+    }).into()
+}
+
+/// Handle map view change
+#[command]
+fn map_view_changed(
+    In(params): In<MapViewParams>,
+    WebviewEntity(_entity): WebviewEntity,
+) -> Action<(f64, f64, u8), ()> {
+    once::run(|In((latitude, longitude, zoom)): In<(f64, f64, u8)>, mut gps_map_state: ResMut<GpsMapState>| {
+        info!("Map view changed: lat={}, lon={}, zoom={}", latitude, longitude, zoom);
+        gps_map_state.center_lat = latitude;
+        gps_map_state.center_lon = longitude;
+        gps_map_state.zoom_level = zoom;
+    }).with((params.latitude, params.longitude, params.zoom)).into()
+}
+
+/// Handle authentication status change
+#[command]
+fn auth_status_changed(
+    In(params): In<AuthParams>,
+    WebviewEntity(_entity): WebviewEntity,
+) -> Action<(bool, Option<String>), ()> {
+    once::run(|In((authenticated, token)): In<(bool, Option<String>)>| {
+        info!("Auth status changed: authenticated={}, token={:?}", authenticated, token);
+        // Handle authentication status change
+    }).with((params.authenticated, params.token)).into()
+}
+
+/// Get map initialization data
+#[command]
+async fn get_map_init(
+    WebviewEntity(_entity): WebviewEntity,
+    task: ReactorTask,
+) -> GpsPosition {
+    task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
+        GpsPosition {
+            latitude: gps_map_state.center_lat,
+            longitude: gps_map_state.center_lon,
+            zoom: gps_map_state.zoom_level,
+        }
+    })).await
+}
+
+/// Get current vessel status
+#[command]
+async fn get_vessel_status(
+    WebviewEntity(_entity): WebviewEntity,
+    task: ReactorTask,
+) -> VesselStatus {
+    task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
+        VesselStatus {
+            latitude: gps_map_state.vessel_lat,
+            longitude: gps_map_state.vessel_lon,
+            heading: gps_map_state.vessel_heading,
+            speed: gps_map_state.vessel_speed,
+        }
+    })).await
+}
+
+/// System to send periodic GPS updates for testing
+fn send_periodic_gps_updates(
+    mut gps_map_state: ResMut<GpsMapState>,
+    time: Res<Time>,
+) {
+    // Update vessel position every frame for testing
+    if time.delta_secs() > 0.0 {
+        // Simulate slight movement around Monaco
+        let base_lat = 43.6377;
+        let base_lon = -1.4497;
+        let offset = (time.elapsed_secs().sin() * 0.001) as f64;
+
+        gps_map_state.vessel_lat = base_lat + offset;
+        gps_map_state.vessel_lon = base_lon + offset * 0.5;
+        gps_map_state.vessel_speed = 5.0 + (time.elapsed_secs().cos() * 2.0) as f64;
+        gps_map_state.vessel_heading = ((time.elapsed_secs() * 10.0) % 360.0) as f64;
+
+        // React side can poll for updates using get_vessel_status command
+        if time.elapsed_secs() as u32 % 5 == 0 && time.delta_secs() < 0.1 {
+            info!("Vessel position updated: lat={:.4}, lon={:.4}, speed={:.1}, heading={:.1}", 
+                  gps_map_state.vessel_lat, gps_map_state.vessel_lon, 
+                  gps_map_state.vessel_speed, gps_map_state.vessel_heading);
+        }
     }
 }

@@ -8,25 +8,6 @@
   </head>
   <body>
     <div id="root"></div>
-<!--    <script type="module" src="/src/main.tsx"></script>-->
-    <div>
-      <div style="display: flex">
-        <p>fibonacci</p>
-        <p id="num">1</p>
-      </div>
-      <button id="action-command-btn">action command</button>
-      <button id="async-command-btn">async command</button>
-    </div>
-    <script>
-      const num = document.getElementById("num");
-      document.getElementById("action-command-btn").onclick = async () => {
-        const n = await window.__FLURX__.invoke("action_command", Number.parseInt(num.innerText));
-        num.innerText = n.toString();
-      };
-      document.getElementById("async-command-btn").onclick = async () => {
-        const n = await window.__FLURX__.invoke("async_command", Number.parseInt(num.innerText));
-        num.innerText = n.toString();
-      };
-    </script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

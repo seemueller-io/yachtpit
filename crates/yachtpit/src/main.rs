@@ -12,7 +12,6 @@ use winit::window::Icon;
 
 #[cfg(not(target_arch = "wasm32"))]
 use bevy_webview_wry::WebviewWryPlugin;
-use serde::Deserialize;
 
 fn main() {
     #[cfg(not(target_arch = "wasm32"))]

@@ -8669,6 +8669,8 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_asset_loader",
+ "bevy_flurx",
+ "bevy_flurx_ipc",
  "bevy_kira_audio",
  "bevy_webview_wry",
  "components",
@@ -8676,6 +8678,8 @@ dependencies = [
  "image",
  "log",
  "rand 0.8.5",
+ "serde",
+ "serde_json",
  "systems",
  "tokio",
  "wasm-bindgen",

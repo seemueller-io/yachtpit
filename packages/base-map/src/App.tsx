@@ -1,36 +1,13 @@
-import Map from 'react-map-gl/mapbox';          // ↔ v5+ uses this import path
+import Map from 'react-map-gl/mapbox'; // ↔ v5+ uses this import path
 import 'mapbox-gl/dist/mapbox-gl.css';
-import {Box, HStack, Button, Input} from '@chakra-ui/react';
-import {useState, useEffect} from 'react';
-import Cookies from 'js-cookie';
+import {Box, Button, HStack} from '@chakra-ui/react';
+
+// public key
+const key =
+    'cGsuZXlKMUlqb2laMlZ2Wm1aelpXVWlMQ0poSWpvaVkycDFOalo0YkdWNk1EUTRjRE41YjJnNFp6VjNNelp6YXlKOS56LUtzS1l0X3VGUGdCSDYwQUFBNFNn';
+
 
 function App() {
-    const [mapboxToken, setMapboxToken] = useState(() => Cookies.get('mapbox_token') || '');
-    const [isTokenLoading, setIsTokenLoading] = useState(false);
-    const [authenticated, setAuthenticated] = useState(false);
-
-    useEffect(() => {
-        const checkAndLoadToken = async () => {
-            const savedToken = Cookies.get('mapbox_token');
-            if (savedToken) {
-                setMapboxToken(savedToken);
-            }
-            setIsTokenLoading(false);
-        };
-        checkAndLoadToken();
-    }, []);
-
-    useEffect(() => {
-        if (!isTokenLoading && mapboxToken) {
-            Cookies.set('mapbox_token', mapboxToken, {
-                secure: true,
-                sameSite: 'strict',
-                expires: 30  // 30 days
-            });
-        }
-    }, [mapboxToken, isTokenLoading]);
-
-
     return (
         /* Full-screen wrapper — fills the viewport and becomes the positioning context */
         <Box w="100vw" h="100vh" position="relative" overflow="hidden">
@@ -42,35 +19,15 @@ function App() {
                 <Button colorScheme="teal" size="sm" variant="solid">
                     Search
                 </Button>
-                {!authenticated && (
-                    <>
-                        <Input
-                            placeholder="Enter Mapbox token"
-                            size="sm"
-                            width="300px"
-                            value={mapboxToken}
-                            onChange={(e) => setMapboxToken(e.target.value)}
-                        />
-                        <Button
-                            colorScheme="green"
-                            size="sm"
-                            onClick={() => setAuthenticated(true)}
-                        >
-                            Set Mapbox token
-                        </Button>
-                    </>
-                )}
             </HStack>
-
-            {/* Map itself */}
-            {authenticated && (<Map
-                mapboxAccessToken={mapboxToken}
+            <Map
+                mapboxAccessToken={atob(key)}
                 initialViewState={{longitude: -122.4, latitude: 37.8, zoom: 14}}
                 mapStyle="mapbox://styles/mapbox/dark-v11"
                 reuseMaps
                 attributionControl={false}
                 style={{width: '100%', height: '100%'}}  // let the wrapper dictate size
-            />)}
+            />
         </Box>
     );
 }

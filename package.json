@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": ["packages/*"],
   "scripts": {
-    "build-and-deploy-map": "cd packages/base-map && npm run build && cd ../.. && mkdir -p crates/yachtpit/assets/ui/packages/base-map/dist && cp -r packages/base-map/dist/* crates/yachtpit/assets/ui/packages/base-map/dist/"
+    "build-and-deploy-map": "cd packages/base-map && npm run build && cd ../.. && mkdir -p crates/yachtpit/assets/ui/packages/base-map/dist && cp -r packages/base-map/dist/* crates/yachtpit/assets/ui/packages/base-map/dist/",
+    "postinstall": "npm run build-and-deploy-map"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use bevy_flurx::prelude::*;
 use bevy_webview_wry::prelude::*;
 use serde::{Deserialize, Serialize};
+use crate::services::{GpsService, GpsData};
 /// Render layer for GPS map entities to isolate them from other cameras
 
 
@@ -97,8 +98,9 @@ impl Plugin for GpsMapPlugin {
             .add_systems(Update, (
                 handle_gps_map_window_events, 
                 update_map_tiles,
-                send_periodic_gps_updates,
-            ));
+                update_gps_from_service,
+            ))
+            .add_systems(Startup, enable_gps_service);
     }
 }
 
@@ -330,28 +332,36 @@ async fn get_vessel_status(
     })).await
 }
 
-/// System to send periodic GPS updates for testing
-fn send_periodic_gps_updates(
+/// System to enable GPS service on startup
+fn enable_gps_service(mut gps_service: ResMut<GpsService>) {
+    gps_service.enable();
+    info!("GPS service enabled for map tracking");
+}
+
+/// System to update GPS map state from GPS service
+fn update_gps_from_service(
     mut gps_map_state: ResMut<GpsMapState>,
-    time: Res<Time>,
+    gps_service: Res<GpsService>,
 ) {
-    // Update vessel position every frame for testing
-    if time.delta_secs() > 0.0 {
-        // Simulate slight movement around Monaco
-        let base_lat = 43.6377;
-        let base_lon = -1.4497;
-        let offset = (time.elapsed_secs().sin() * 0.001) as f64;
+    if let Some(gps_data) = gps_service.get_current_position() {
+        // Update vessel position from real GPS data
+        gps_map_state.vessel_lat = gps_data.latitude;
+        gps_map_state.vessel_lon = gps_data.longitude;
 
-        gps_map_state.vessel_lat = base_lat + offset;
-        gps_map_state.vessel_lon = base_lon + offset * 0.5;
-        gps_map_state.vessel_speed = 5.0 + (time.elapsed_secs().cos() * 2.0) as f64;
-        gps_map_state.vessel_heading = ((time.elapsed_secs() * 10.0) % 360.0) as f64;
+        // Update speed and heading if available
+        if let Some(speed) = gps_data.speed {
+            gps_map_state.vessel_speed = speed;
+        }
+        if let Some(heading) = gps_data.heading {
+            gps_map_state.vessel_heading = heading;
+        }
 
-        // React side can poll for updates using get_vessel_status command
-        if time.elapsed_secs() as u32 % 5 == 0 && time.delta_secs() < 0.1 {
-            info!("Vessel position updated: lat={:.4}, lon={:.4}, speed={:.1}, heading={:.1}", 
-                  gps_map_state.vessel_lat, gps_map_state.vessel_lon, 
-                  gps_map_state.vessel_speed, gps_map_state.vessel_heading);
+        // Also update map center to follow vessel if this is the first GPS fix
+        if gps_map_state.center_lat == 43.6377 && gps_map_state.center_lon == -1.4497 {
+            gps_map_state.center_lat = gps_data.latitude;
+            gps_map_state.center_lon = gps_data.longitude;
+            info!("Map centered on GPS position: lat={:.6}, lon={:.6}", 
+                  gps_data.latitude, gps_data.longitude);
         }
     }
 }

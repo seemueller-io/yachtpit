@@ -55,7 +55,7 @@ export default function MapNext(props: any = {mapboxPublicKey: ""} as any) {
                     pitch: 0
                 }}
 
-                mapStyle="mapbox://styles/mapbox/dark-v9"
+                mapStyle="mapbox://styles/geoffsee/cmd1qz39x01ga01qv5acea02y"
                 mapboxAccessToken={props.mapboxPublicKey}
                 style={{position: "fixed", width: '100%', height: '100%', bottom: 0, top: 0, left: 0, right: 0}}
             >

@@ -14,7 +14,7 @@ build = "build.rs"
 # ────────────────────────────────────────────────
 [dependencies]
 # Web server framework (swap for actix‑web, warp, etc.)
-axum = { version = "0.7", optional = true, default-features = false, features = ["macros", "tokio", "http1"] }
+axum = { version = "0.7", optional = true, default-features = false, features = ["macros", "tokio", "http1", "json"] }
 tokio = { version = "1.46.0", features = ["full"], optional = true}
 tower-http = { version = "0.6", features = ["full"] }
 tracing = "0.1.37"
@@ -25,6 +25,7 @@ axum-embed = "0.1.0"
 # Static‑file embedding helper (compile assets straight into the binary).
 # If you prefer reading from disk at runtime, delete this.
 rust-embed     = { version = "8", optional = true }
+serde = { version = "1.0.219", features = ["derive"] }
 
 # ────────────────────────────────────────────────
 # Dev‑only dependencies (examples, tests, benches)

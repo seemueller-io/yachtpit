@@ -41,29 +41,38 @@ fn main() {
         .run();
 
     #[cfg(target_arch = "wasm32")]
-    App::new()
-        .insert_resource(ClearColor(Color::NONE))
-        .add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        // Bind to canvas included in `index.html`
-                        canvas: Some("#yachtpit-canvas".to_owned()),
-                        fit_canvas_to_parent: true,
-                        // Tells wasm not to override default event handling, like F5 and Ctrl+R
-                        prevent_default_event_handling: false,
+    {
+        // Add console logging for WASM debugging
+        console_error_panic_hook::set_once();
+
+        info!("Starting WASM Bevy application");
+
+        App::new()
+            .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.1))) // Dark gray background instead of transparent
+            .add_plugins(
+                DefaultPlugins
+                    .set(WindowPlugin {
+                        primary_window: Some(Window {
+                            // Bind to canvas included in `index.html`
+                            canvas: Some("#yachtpit-canvas".to_owned()),
+                            fit_canvas_to_parent: true,
+                            // Tells wasm not to override default event handling, like F5 and Ctrl+R
+                            prevent_default_event_handling: false,
+                            ..default()
+                        }),
+                        ..default()
+                    })
+                    .set(AssetPlugin {
+                        meta_check: AssetMetaCheck::Never,
                         ..default()
                     }),
-                    ..default()
-                })
-                .set(AssetPlugin {
-                    meta_check: AssetMetaCheck::Never,
-                    ..default()
-                }),
-        )
-        .add_plugins(GamePlugin)
-        .add_systems(Startup, set_window_icon)
-        .run();
+            )
+            .add_plugins(GamePlugin)
+            .add_systems(Startup, || {
+                info!("WASM Bevy startup system running");
+            })
+            .run();
+    }
 
 }
 

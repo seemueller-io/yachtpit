@@ -3,6 +3,7 @@
 
 mod core;
 mod ui;
+mod services;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -11,7 +12,10 @@ use bevy::prelude::*;
 use crate::core::{ActionsPlugin, SystemManagerPlugin};
 use crate::core::system_manager::SystemManager;
 use crate::ui::{LoadingPlugin, MenuPlugin, GpsMapPlugin};
+use crate::services::GpsServicePlugin;
 use systems::{PlayerPlugin, setup_instrument_cluster, get_vessel_systems};
+#[cfg(target_arch = "wasm32")]
+use systems::GeoPlugin;
 
 // See https://bevy-cheatbook.github.io/programming/states.html
 #[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
@@ -41,12 +45,18 @@ impl Plugin for GamePlugin {
             LoadingPlugin,
             MenuPlugin,
             GpsMapPlugin,
+            GpsServicePlugin,
             ActionsPlugin,
             SystemManagerPlugin,
             PlayerPlugin,
         ))
-            
+
         .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems));
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            app.add_plugins(GeoPlugin);
+        }
 
         #[cfg(debug_assertions)]
         {

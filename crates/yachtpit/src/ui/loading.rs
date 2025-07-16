@@ -13,16 +13,26 @@ pub struct LoadingPlugin;
 /// If interested, take a look at <https://bevy-cheatbook.github.io/features/assets.html>
 impl Plugin for LoadingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_loading_state(
-            LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Playing)
-                // .load_collection::<AudioAssets>()
-                // .load_collection::<TextureAssets>(),
-        );
+        // Temporarily bypass asset loading and go directly to Playing state
+        app.add_systems(Startup, || {
+            info!("LoadingPlugin: Starting up, transitioning to Playing state");
+        });
+
+        app.add_systems(Update, transition_to_playing.run_if(in_state(GameState::Loading)));
 
         // Add a system to hide the loading indicator when transitioning to the Playing state
         app.add_systems(OnEnter(GameState::Playing), hide_loading_indicator);
+
+        // Add debug systems to track state transitions
+        app.add_systems(OnEnter(GameState::Loading), || info!("Entered Loading state"));
+        app.add_systems(OnExit(GameState::Loading), || info!("Exiting Loading state"));
+        app.add_systems(OnEnter(GameState::Playing), || info!("Entered Playing state"));
     }
+}
+
+fn transition_to_playing(mut next_state: ResMut<NextState<GameState>>) {
+    info!("Transitioning from Loading to Playing state");
+    next_state.set(GameState::Playing);
 }
 
 /// Hides the loading indicator when transitioning to the Playing state

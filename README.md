@@ -17,14 +17,9 @@ An open-source virtual cockpit for Windows, macOS, Linux, Web, Android, and iOS.
 
 ### grits
 ```shell
+# clone the project
 git clone https://github.com/seemueller-io/yachtpit.git && cd yachtpit
 
-# https://doc.rust-lang.org/cargo/commands/cargo-check.html#description 
-cargo check
-
-# install/build node dependencies (bun|npm|pnpm|yarn)
-bun install
-
-# run the desktop app with the development profile
+# run desktop app with the development profile
 cargo run
 ```

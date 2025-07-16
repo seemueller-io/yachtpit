@@ -14,8 +14,13 @@ build = "build.rs"
 # ────────────────────────────────────────────────
 [dependencies]
 # Web server framework (swap for actix‑web, warp, etc.)
-axum          = { version = "0.7", optional = true, default-features = false, features = ["macros"] }
-tokio         = { version = "1",  optional = true, features = ["rt-multi-thread", "macros"] }
+axum = { version = "0.7", optional = true, default-features = false, features = ["macros", "tokio", "http1"] }
+tokio = { version = "1.46.0", features = ["full"], optional = true}
+tower-http = { version = "0.6", features = ["full"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
+anyhow         = "1"
+axum-embed = "0.1.0"
 
 # Static‑file embedding helper (compile assets straight into the binary).
 # If you prefer reading from disk at runtime, delete this.
@@ -25,8 +30,8 @@ rust-embed     = { version = "8", optional = true }
 # Dev‑only dependencies (examples, tests, benches)
 # ────────────────────────────────────────────────
 [dev-dependencies]
-anyhow         = "1"
 serde_json     = "1"
+
 
 # ────────────────────────────────────────────────
 # Features let you strip out things you don’t want
@@ -48,8 +53,8 @@ embed-assets = ["rust-embed"]
 # Keep your node_modules and dist/ out of the crate
 # published to crates.io (they’re huge and useless there)
 exclude = [
-    "frontend/node_modules/**",
-    "frontend/dist/**"
+    "map/node_modules/**",
+    "map/dist/**"
 ]
 
 # ────────────────────────────────────────────────

@@ -184,19 +184,25 @@ fn spawn_placeholder_map(commands: &mut Commands, _asset_server: &Res<AssetServe
 /// Function to spawn the GPS map window
 pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     #[cfg(not(target_arch = "wasm32"))]
+    spawn_webview(commands, gps_map_state);
+
+    #[cfg(target_arch = "wasm32")]
+    web_sys::window().unwrap().document().unwrap().create_element("div").unwrap().set_id("bevy-gps-map");
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn spawn_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapState>) {
     if gps_map_state.window_id.is_some() {
         info!("GPS map window already open");
         return;
     }
-    #[cfg(not(target_arch = "wasm32"))]
     info!("Spawning GPS map window");
 
     // Create a new window for the GPS map
-    #[cfg(not(target_arch = "wasm32"))]
     let window_entity = commands
         .spawn((
             Window {
-                title: "GPS Navigation - OpenStreetMap".to_string(),
+                title: "GPS".to_string(),
                 resolution: (800.0, 600.0).into(),
                 position: bevy::window::WindowPosition::Centered(
                     bevy::window::MonitorSelection::Current,
@@ -207,13 +213,9 @@ pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<
         ))
         .id();
 
-    #[cfg(not(target_arch = "wasm32"))]
-    if !cfg!(target_arch = "wasm32") {
-        gps_map_state.window_id = Some(window_entity);
-    }
+    gps_map_state.window_id = Some(window_entity);
 
     // Create a camera for the map window
-    #[cfg(not(target_arch = "wasm32"))]
     commands.spawn((
         Camera2d,
         Camera {
@@ -228,16 +230,10 @@ pub fn spawn_gps_map_window(commands: &mut Commands, gps_map_state: &mut ResMut<
 
 
 
-    #[cfg(not(target_arch = "wasm32"))]
     info!("GPS map window spawned with entity: {:?}", window_entity);
 
 
-    #[cfg(not(target_arch = "wasm32"))]
     spawn_gps_webview(commands, gps_map_state);
-
-    #[cfg(target_arch = "wasm32")]
-    info!("Creating dom element for GPS map");
-    web_sys::window().unwrap().document().unwrap().create_element("div").unwrap().set_id("bevy-gps-map");
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -254,7 +250,7 @@ fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapS
             ]),
             Webview::Uri(WebviewUri::relative_local(
                 // Using the build output of the base-map package
-                "../../../base-map/dist/index.html",
+                "packages/base-map/dist/index.html",
             ))
         ));
     }

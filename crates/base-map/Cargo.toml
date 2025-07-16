@@ -1,0 +1,68 @@
+[package]
+name        = "base-map"
+version     = "0.1.0"
+edition     = "2021"
+description = "Rust back‑end + Vite front‑end"
+license     = "MIT OR Apache-2.0"
+
+# Tell Cargo to run our build script
+build = "build.rs"
+
+# ────────────────────────────────────────────────
+# Dependencies you actually need in Rust code
+# (pick only the ones you want)
+# ────────────────────────────────────────────────
+[dependencies]
+# Web server framework (swap for actix‑web, warp, etc.)
+axum          = { version = "0.7", optional = true, default-features = false, features = ["macros"] }
+tokio         = { version = "1",  optional = true, features = ["rt-multi-thread", "macros"] }
+
+# Static‑file embedding helper (compile assets straight into the binary).
+# If you prefer reading from disk at runtime, delete this.
+rust-embed     = { version = "8", optional = true }
+
+# ────────────────────────────────────────────────
+# Dev‑only dependencies (examples, tests, benches)
+# ────────────────────────────────────────────────
+[dev-dependencies]
+anyhow         = "1"
+serde_json     = "1"
+
+# ────────────────────────────────────────────────
+# Features let you strip out things you don’t want
+# by disabling default features in your workspace
+# ────────────────────────────────────────────────
+[features]
+default = ["server", "embed-assets"]
+
+# Feature that pulls in the server stack
+server = ["axum", "tokio"]
+
+# Feature that embeds Vite’s dist/ into the binary
+embed-assets = ["rust-embed"]
+
+# ────────────────────────────────────────────────
+# Tell Cargo what NOT to publish to crates.io
+# ────────────────────────────────────────────────
+[package.metadata]
+# Keep your node_modules and dist/ out of the crate
+# published to crates.io (they’re huge and useless there)
+exclude = [
+    "frontend/node_modules/**",
+    "frontend/dist/**"
+]
+
+# ────────────────────────────────────────────────
+# Optional: workspace setup
+# ────────────────────────────────────────────────
+# If this lives inside a workspace, remove [workspace] here
+# and put these paths in the root Cargo.toml instead.
+
+[lib]
+# Default name is fine; no need to set anything unless you want cdylib, etc.
+path = "src/lib.rs"
+
+# Optional: multiple binaries live in src/bin/
+[[bin]]
+name = "server"          # produces target/release/server
+path = "src/main.rs"

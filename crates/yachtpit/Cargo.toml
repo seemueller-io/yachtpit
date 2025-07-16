@@ -78,7 +78,8 @@ winit = "0.30"
 bevy_webview_wry = { version = "0.4", default-features = false, features = ["api"] }
 bevy_flurx = "0.11"
 bevy_flurx_ipc = "0.4.0"
-# GPS support for native platforms - placeholder for future real GPS implementation
+# (run `cargo tree | grep wry` and use the version you see for bevy_webview_wry)
+wry = {version = "=0.51.2", optional = true, features = ["os-webview"]} # GPS support for native platforms - placeholder for future real GPS implementation
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tokio = { version = "1.0", features = ["rt"] }

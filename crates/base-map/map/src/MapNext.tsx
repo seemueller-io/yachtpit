@@ -8,8 +8,8 @@ import Map, {
     GeolocateControl
 } from 'react-map-gl/mapbox';
 
-import ControlPanel from './control-panel';
-import Pin from './pin';
+import ControlPanel from './control-panel.tsx';
+import Pin from './pin.tsx';
 
 import PORTS from './test_data/nautical-base-data.json';
 import {Box} from "@chakra-ui/react";
@@ -59,7 +59,7 @@ export default function MapNext(props: any = {mapboxPublicKey: ""} as any) {
                 mapboxAccessToken={props.mapboxPublicKey}
                 style={{position: "fixed", width: '100%', height: '100%', bottom: 0, top: 0, left: 0, right: 0}}
             >
-                <GeolocateControl position="top-left" />
+                <GeolocateControl showUserHeading={true} showUserLocation={true} position="top-left" />
                 <FullscreenControl position="top-left" />
                 <NavigationControl position="top-left" />
                 <ScaleControl />

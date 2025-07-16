@@ -21,6 +21,8 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 anyhow         = "1"
 axum-embed = "0.1.0"
+wry = {version = "=0.51.2", features = ["os-webview"]} # GPS support for native platforms - placeholder for future real GPS implementation
+tao = {version = "0.34"}
 
 # Static‑file embedding helper (compile assets straight into the binary).
 # If you prefer reading from disk at runtime, delete this.
@@ -72,3 +74,8 @@ path = "src/lib.rs"
 [[bin]]
 name = "server"          # produces target/release/server
 path = "src/main.rs"
+
+# Optional: multiple binaries live in src/bin/
+[[bin]]
+name = "app"          # produces target/release/server
+path = "src/app.rs"

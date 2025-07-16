@@ -1,4 +1,5 @@
 mod geolocate;
+mod app;
 
 use axum::response::IntoResponse;
 use axum::routing::post;

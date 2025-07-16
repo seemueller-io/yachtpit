@@ -2,13 +2,11 @@ use bevy::prelude::*;
 use bevy::render::view::RenderLayers;
 use bevy::window::Window;
 use std::collections::HashMap;
-use bevy_flurx::prelude::*;
-use bevy_webview_wry::prelude::*;
 use serde::{Deserialize, Serialize};
 use crate::services::{GpsService, GpsData};
-/// Render layer for GPS map entities to isolate them from other cameras
 
-
+#[cfg(not(target_arch = "wasm32"))]
+use bevy_flurx::prelude::*;
 #[cfg(not(target_arch = "wasm32"))]
 use bevy_webview_wry::prelude::*;
 
@@ -234,12 +232,12 @@ fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapS
     if let Some(win) = gps_map_state.window_id {
         commands.entity(win).insert((
             IpcHandlers::new([
-                navigation_clicked,
-                search_clicked,
-                map_view_changed,
-                auth_status_changed,
-                get_map_init,
-                get_vessel_status
+                ipc_commands::navigation_clicked,
+                ipc_commands::search_clicked,
+                ipc_commands::map_view_changed,
+                ipc_commands::auth_status_changed,
+                ipc_commands::get_map_init,
+                ipc_commands::get_vessel_status
             ]),
             Webview::Uri(WebviewUri::relative_local(
                 // Using the build output of the base-map package
@@ -249,85 +247,90 @@ fn spawn_gps_webview(commands: &mut Commands, gps_map_state: &mut ResMut<GpsMapS
     }
 }
 
-// GPS Map IPC Commands using bevy_flurx_ipc
+#[cfg(not(target_arch = "wasm32"))]
+mod ipc_commands {
+    use super::*;
 
-/// Handle navigation button click
-#[command]
-fn navigation_clicked(
-    WebviewEntity(_entity): WebviewEntity,
-) -> Action<(), ()> {
-    once::run(|_: In<()>| {
-        info!("Navigation button clicked in React");
-        // Handle navigation logic here
-    }).into()
-}
+    // GPS Map IPC Commands using bevy_flurx_ipc
 
-/// Handle search button click
-#[command]
-fn search_clicked(
-    WebviewEntity(_entity): WebviewEntity,
-) -> Action<(), ()> {
-    once::run(|_: In<()>| {
-        info!("Search button clicked in React");
-        // Handle search logic here
-    }).into()
-}
+    /// Handle navigation button click
+    #[command]
+    pub fn navigation_clicked(
+        WebviewEntity(_entity): WebviewEntity,
+    ) -> Action<(), ()> {
+        once::run(|_: In<()>| {
+            info!("Navigation button clicked in React");
+            // Handle navigation logic here
+        }).into()
+    }
 
-/// Handle map view change
-#[command]
-fn map_view_changed(
-    In(params): In<MapViewParams>,
-    WebviewEntity(_entity): WebviewEntity,
-) -> Action<(f64, f64, u8), ()> {
-    once::run(|In((latitude, longitude, zoom)): In<(f64, f64, u8)>, mut gps_map_state: ResMut<GpsMapState>| {
-        info!("Map view changed: lat={}, lon={}, zoom={}", latitude, longitude, zoom);
-        gps_map_state.center_lat = latitude;
-        gps_map_state.center_lon = longitude;
-        gps_map_state.zoom_level = zoom;
-    }).with((params.latitude, params.longitude, params.zoom)).into()
-}
+    /// Handle search button click
+    #[command]
+    pub fn search_clicked(
+        WebviewEntity(_entity): WebviewEntity,
+    ) -> Action<(), ()> {
+        once::run(|_: In<()>| {
+            info!("Search button clicked in React");
+            // Handle search logic here
+        }).into()
+    }
 
-/// Handle authentication status change
-#[command]
-fn auth_status_changed(
-    In(params): In<AuthParams>,
-    WebviewEntity(_entity): WebviewEntity,
-) -> Action<(bool, Option<String>), ()> {
-    once::run(|In((authenticated, token)): In<(bool, Option<String>)>| {
-        info!("Auth status changed: authenticated={}, token={:?}", authenticated, token);
-        // Handle authentication status change
-    }).with((params.authenticated, params.token)).into()
-}
+    /// Handle map view change
+    #[command]
+    pub fn map_view_changed(
+        In(params): In<MapViewParams>,
+        WebviewEntity(_entity): WebviewEntity,
+    ) -> Action<(f64, f64, u8), ()> {
+        once::run(|In((latitude, longitude, zoom)): In<(f64, f64, u8)>, mut gps_map_state: ResMut<GpsMapState>| {
+            info!("Map view changed: lat={}, lon={}, zoom={}", latitude, longitude, zoom);
+            gps_map_state.center_lat = latitude;
+            gps_map_state.center_lon = longitude;
+            gps_map_state.zoom_level = zoom;
+        }).with((params.latitude, params.longitude, params.zoom)).into()
+    }
 
-/// Get map initialization data
-#[command]
-async fn get_map_init(
-    WebviewEntity(_entity): WebviewEntity,
-    task: ReactorTask,
-) -> GpsPosition {
-    task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
-        GpsPosition {
-            latitude: gps_map_state.center_lat,
-            longitude: gps_map_state.center_lon,
-            zoom: gps_map_state.zoom_level,
-        }
-    })).await
-}
+    /// Handle authentication status change
+    #[command]
+    pub fn auth_status_changed(
+        In(params): In<AuthParams>,
+        WebviewEntity(_entity): WebviewEntity,
+    ) -> Action<(bool, Option<String>), ()> {
+        once::run(|In((authenticated, token)): In<(bool, Option<String>)>| {
+            info!("Auth status changed: authenticated={}, token={:?}", authenticated, token);
+            // Handle authentication status change
+        }).with((params.authenticated, params.token)).into()
+    }
 
-/// Get current vessel status
-#[command]
-async fn get_vessel_status(
-    WebviewEntity(_entity): WebviewEntity,
-    task: ReactorTask,
-) -> VesselStatus {
-    task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
-        VesselStatus {
-            latitude: gps_map_state.vessel_lat,
-            longitude: gps_map_state.vessel_lon,
-            heading: gps_map_state.vessel_heading,
-            speed: gps_map_state.vessel_speed,
-        }
-    })).await
+    /// Get map initialization data
+    #[command]
+    pub async fn get_map_init(
+        WebviewEntity(_entity): WebviewEntity,
+        task: ReactorTask,
+    ) -> GpsPosition {
+        task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
+            GpsPosition {
+                latitude: gps_map_state.center_lat,
+                longitude: gps_map_state.center_lon,
+                zoom: gps_map_state.zoom_level,
+            }
+        })).await
+    }
+
+    /// Get current vessel status
+    #[command]
+    pub async fn get_vessel_status(
+        WebviewEntity(_entity): WebviewEntity,
+        task: ReactorTask,
+    ) -> VesselStatus {
+        task.will(Update, once::run(|gps_map_state: Res<GpsMapState>| {
+            VesselStatus {
+                latitude: gps_map_state.vessel_lat,
+                longitude: gps_map_state.vessel_lon,
+                heading: gps_map_state.vessel_heading,
+                speed: gps_map_state.vessel_speed,
+            }
+        })).await
+    }
 }
 
 /// System to enable GPS service on startup

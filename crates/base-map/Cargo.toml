@@ -21,13 +21,25 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 anyhow         = "1"
 axum-embed = "0.1.0"
-wry = {version = "=0.51.2", features = ["os-webview"]} # GPS support for native platforms - placeholder for future real GPS implementation
-tao = {version = "0.34"}
-
+wry = { version = "=0.51.2", features = ["protocol", "os-webview"] }
+tao = { version = "0.34"}
+web-sys = { version = "0.3.77", features = [
+    "console",
+    "Geolocation",
+    "Navigator",
+    "Window",
+    "Document",
+    "Element",
+    "Position",
+    "PositionOptions",
+    "PositionError",
+    "Coordinates"
+] }
 # Static‑file embedding helper (compile assets straight into the binary).
 # If you prefer reading from disk at runtime, delete this.
 rust-embed     = { version = "8", optional = true }
 serde = { version = "1.0.219", features = ["derive"] }
+
 
 # ────────────────────────────────────────────────
 # Dev‑only dependencies (examples, tests, benches)

@@ -14,6 +14,8 @@ use crate::core::system_manager::SystemManager;
 use crate::ui::{LoadingPlugin, MenuPlugin, GpsMapPlugin};
 use crate::services::GpsServicePlugin;
 use systems::{PlayerPlugin, setup_instrument_cluster, get_vessel_systems};
+#[cfg(target_arch = "wasm32")]
+use systems::GeoPlugin;
 
 // See https://bevy-cheatbook.github.io/programming/states.html
 #[derive(States, Default, Clone, Eq, PartialEq, Debug, Hash)]
@@ -49,7 +51,13 @@ impl Plugin for GamePlugin {
             PlayerPlugin,
         ))
 
-        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems));
+        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems))
+        .add_systems(Startup, simple_test_render);
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            app.add_plugins(GeoPlugin);
+        }
 
         #[cfg(debug_assertions)]
         {
@@ -59,4 +67,23 @@ impl Plugin for GamePlugin {
             ));
         }
     }
+}
+
+fn simple_test_render(mut commands: Commands) {
+    info!("Simple test render: spawning camera and test rectangle");
+
+    // Spawn a 2D camera
+    commands.spawn((Camera2d, Msaa::Off));
+
+    // Spawn a simple colored rectangle to test rendering
+    commands.spawn((
+        Sprite {
+            color: Color::srgb(1.0, 0.0, 0.0), // Red color
+            custom_size: Some(Vec2::new(200.0, 200.0)),
+            ..default()
+        },
+        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+    ));
+
+    info!("Simple test render: entities spawned");
 }

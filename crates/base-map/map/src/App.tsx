@@ -12,6 +12,7 @@ const key =
     'cGsuZXlKMUlqb2laMlZ2Wm1aelpXVWlMQ0poSWpvaVkycDFOalo0YkdWNk1EUTRjRE41YjJnNFp6VjNNelp6YXlKOS56LUtzS1l0X3VGUGdCSDYwQUFBNFNn';
 
 
+
 // const vesselLayerStyle: CircleLayerSpecification = {
 //     id: 'vessel',
 //     type: 'circle',
@@ -81,6 +82,7 @@ function App() {
     //         }
     //     ] : []
     // };
+    
 
     // Button click handlers
     const handleNavigationClick = useCallback(async () => {

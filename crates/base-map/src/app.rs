@@ -3,14 +3,26 @@ use tao::{
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
+use tao::platform::macos::WindowBuilderExtMacOS;
+use tower_http::follow_redirect::policy::PolicyExt;
+use tower_http::ServiceExt;
 use wry::WebViewBuilder;
 
 fn main() -> wry::Result<()> {
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let window = WindowBuilder::new()
+        .with_title("YachtPit Map")
+        .build(&event_loop).unwrap();
 
     let builder = WebViewBuilder::new()
-        .with_url("http://localhost:8080/")
+        .with_url("http://localhost:8080/geolocate")
+        .with_new_window_req_handler(|e| {
+            println!("NewWindow: {e:?}");
+            true
+        })
+        .with_ipc_handler(|e| {
+            println!("IPC: {e:?}");
+        })
         .with_drag_drop_handler(|e| {
             match e {
                 wry::DragDropEvent::Enter { paths, position } => {

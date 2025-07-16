@@ -21,3 +21,18 @@ datalink = { path = "../datalink" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 datalink-provider = { path = "../datalink-provider" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = { workspace = true }
+web-sys = { version = "0.3.77", features = [
+    "console",
+    "Geolocation",
+    "Navigator",
+    "Window",
+    "Document",
+    "Element",
+    "Position",
+    "PositionOptions",
+    "PositionError",
+    "Coordinates"
+] }

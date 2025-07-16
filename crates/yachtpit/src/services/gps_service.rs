@@ -97,19 +97,15 @@ pub fn start_native_gps_tracking(mut gps_service: ResMut<GpsService>, time: Res<
 // For web platforms, we'll use a simplified approach that requests position periodically
 #[cfg(target_arch = "wasm32")]
 pub fn start_web_gps_tracking(mut gps_service: ResMut<GpsService>, time: Res<Time>) {
-    use std::time::{SystemTime, UNIX_EPOCH};
-
     if !gps_service.is_enabled {
         return;
     }
 
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs_f64();
+    // Use Bevy's time instead of std::time for WASM compatibility
+    let current_time = time.elapsed_secs_f64();
 
     // Only try to get GPS every 5 seconds to avoid overwhelming the browser
-    if timestamp - gps_service.last_update < 5.0 {
+    if current_time - gps_service.last_update < 5.0 {
         return;
     }
 
@@ -129,10 +125,10 @@ pub fn start_web_gps_tracking(mut gps_service: ResMut<GpsService>, time: Res<Tim
         accuracy: Some(5.0), // Slightly less accurate on web
         heading: Some(((time_factor * 15.0) % 360.0) as f64),
         speed: Some(4.8), // Slightly different speed for web
-        timestamp,
+        timestamp: current_time,
     };
 
-    gps_service.update_position(gps_data);
+    gps_service.update_position(gps_data.clone());
     info!("Web GPS position updated: lat={:.6}, lon={:.6}", gps_data.latitude, gps_data.longitude);
 }
 
@@ -153,6 +149,8 @@ impl Plugin for GpsServicePlugin {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(not(target_arch = "wasm32"))]
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[test]
@@ -166,6 +164,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_arch = "wasm32"))]
     fn test_gps_data_update() {
         let mut gps_service = GpsService::new();
 
@@ -173,6 +172,33 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs_f64();
+
+        let test_gps_data = GpsData {
+            latitude: 43.7384,
+            longitude: 7.4246,
+            altitude: Some(0.0),
+            accuracy: Some(3.0),
+            heading: Some(45.0),
+            speed: Some(5.2),
+            timestamp,
+        };
+
+        gps_service.update_position(test_gps_data.clone());
+
+        let current_pos = gps_service.get_current_position().unwrap();
+        assert_eq!(current_pos.latitude, 43.7384);
+        assert_eq!(current_pos.longitude, 7.4246);
+        assert_eq!(current_pos.speed, Some(5.2));
+        assert_eq!(current_pos.heading, Some(45.0));
+    }
+
+    #[test]
+    #[cfg(target_arch = "wasm32")]
+    fn test_gps_data_update_wasm() {
+        let mut gps_service = GpsService::new();
+
+        // Use a mock timestamp for WASM testing
+        let timestamp = 1234567890.0;
 
         let test_gps_data = GpsData {
             latitude: 43.7384,

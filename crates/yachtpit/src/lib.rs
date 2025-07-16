@@ -51,8 +51,7 @@ impl Plugin for GamePlugin {
             PlayerPlugin,
         ))
 
-        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems))
-        .add_systems(Startup, simple_test_render);
+        .add_systems(OnEnter(GameState::Playing), (setup_instrument_cluster, initialize_vessel_systems));
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -67,23 +66,4 @@ impl Plugin for GamePlugin {
             ));
         }
     }
-}
-
-fn simple_test_render(mut commands: Commands) {
-    info!("Simple test render: spawning camera and test rectangle");
-
-    // Spawn a 2D camera
-    commands.spawn((Camera2d, Msaa::Off));
-
-    // Spawn a simple colored rectangle to test rendering
-    commands.spawn((
-        Sprite {
-            color: Color::srgb(1.0, 0.0, 0.0), // Red color
-            custom_size: Some(Vec2::new(200.0, 200.0)),
-            ..default()
-        },
-        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
-    ));
-
-    info!("Simple test render: entities spawned");
 }

@@ -90,7 +90,9 @@ bevy_webview_wry = { version = "0.4", default-features = false, features = ["api
 bevy_flurx = "0.11"
 bevy_flurx_ipc = "0.4.0"
 # (run `cargo tree | grep wry` and use the version you see for bevy_webview_wry)
-wry = { version = "=0.51.2", optional = true, features = ["os-webview"] } # GPS support for native platforms - placeholder for future real GPS implementation
+wry = { version = "=0.51.2", optional = true, features = ["os-webview"] }
+# GPS support for native platforms using GPYes device
+serialport = "4.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 tokio = { version = "1.0", features = ["rt"] }
@@ -98,3 +100,4 @@ console_error_panic_hook = "0.1"
 
 [build-dependencies]
 embed-resource = "1"
+base-map = { path = "../base-map" }

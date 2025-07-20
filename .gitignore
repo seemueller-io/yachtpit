@@ -37,3 +37,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 /crates/yachtpit/assets/ui/assets/
 /crates/yachtpit/assets/ui/packages/base-map/dist/
+/crates/base-map/map/src/map-upgrade/

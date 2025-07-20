@@ -4,7 +4,7 @@
 > Warning: Experimental, incomplete, and unfunded.
 
 <p align="center">
-  <img src="https://github.com/seemueller-io/yachtpit/blob/main/yachtpit.png?raw=true" width="250" />
+  <img src="https://github.com/seemueller-io/yachtpit/blob/main/yachtpit-x.png?raw=true" width="372" />
 </p>
 
 <p align="center">

@@ -31,14 +31,31 @@ impl Default for VesselData {
     }
 }
 
-/// Updates yacht data with simulated sensor readings
+/// Updates yacht data with sensor readings, using real GPS data when available
 pub fn update_vessel_data(mut vessel_data: ResMut<VesselData>, time: Res<Time>) {
+    update_vessel_data_with_gps(vessel_data, time, None);
+}
+
+/// Updates yacht data with sensor readings, optionally using real GPS data
+pub fn update_vessel_data_with_gps(
+    mut vessel_data: ResMut<VesselData>, 
+    time: Res<Time>, 
+    gps_data: Option<(f64, f64)> // (speed, heading)
+) {
     let t = time.elapsed_secs();
 
-    // Simulate realistic yacht data with some variation
-    vessel_data.speed = 12.5 + (t * 0.3).sin() * 2.0;
+    // Use real GPS data if available, otherwise simulate
+    if let Some((gps_speed, gps_heading)) = gps_data {
+        vessel_data.speed = gps_speed as f32;
+        vessel_data.heading = gps_heading as f32;
+    } else {
+        // Simulate realistic yacht data with some variation
+        vessel_data.speed = 12.5 + (t * 0.3).sin() * 2.0;
+        vessel_data.heading = (vessel_data.heading + time.delta_secs() * 5.0) % 360.0;
+    }
+
+    // Continue simulating other sensor data
     vessel_data.depth = 15.2 + (t * 0.1).sin() * 3.0;
-    vessel_data.heading = (vessel_data.heading + time.delta_secs() * 5.0) % 360.0;
     vessel_data.engine_temp = 82.0 + (t * 0.2).sin() * 3.0;
     vessel_data.wind_speed = 8.3 + (t * 0.4).sin() * 1.5;
     vessel_data.wind_direction = (vessel_data.wind_direction + time.delta_secs() * 10.0) % 360.0;

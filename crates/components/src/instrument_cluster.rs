@@ -39,7 +39,7 @@ pub fn setup_instrument_cluster(mut commands: Commands) {
             ))
             .with_children(|gauge| {
                 gauge.spawn(create_text("SPEED", FONT_SIZE_SMALL, TEXT_COLOR_PRIMARY));
-                gauge.spawn(create_text("12.5", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
+                gauge.spawn(create_text("0.0", FONT_SIZE_LARGE, TEXT_COLOR_SUCCESS));
                 gauge.spawn(create_text("KTS", FONT_SIZE_SMALL, TEXT_COLOR_SECONDARY));
             });
 

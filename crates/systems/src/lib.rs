@@ -9,7 +9,7 @@ mod geo_plugin;
 
 // Re-export components from the components crate
 pub use components::{
-    setup_instrument_cluster, update_instrument_displays, update_vessel_data, VesselData,
+    setup_instrument_cluster, update_instrument_displays, update_vessel_data, update_vessel_data_with_gps, VesselData,
     SpeedGauge, DepthGauge, CompassGauge, EngineStatus, NavigationDisplay,
     InstrumentCluster, GpsIndicator, RadarIndicator, AisIndicator, SystemDisplay
 };

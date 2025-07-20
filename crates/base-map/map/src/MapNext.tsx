@@ -1,4 +1,4 @@
-import {useState, useMemo} from 'react';
+import {useState, useMemo, useEffect} from 'react';
 import Map, {
     Marker,
     Popup,
@@ -15,7 +15,18 @@ import PORTS from './test_data/nautical-base-data.json';
 import {Box} from "@chakra-ui/react";
 
 
-export default function MapNext(props: any = {mapboxPublicKey: ""} as any) {
+export interface Geolocation {
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Geolocation/clearWatch) */
+    clearWatch(watchId: number): void;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Geolocation/getCurrentPosition) */
+    getCurrentPosition(successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, options?: PositionOptions): void;
+    /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Geolocation/watchPosition) */
+    watchPosition(successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, options?: PositionOptions): number;
+}
+
+
+
+export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: Geolocation, vesselPosition: undefined, layer: undefined, mapView: undefined} as any) {
     const [popupInfo, setPopupInfo] = useState(null);
 
     const pins = useMemo(
@@ -44,22 +55,29 @@ export default function MapNext(props: any = {mapboxPublicKey: ""} as any) {
         []
     );
 
+
+    useEffect(() => {
+        console.log("props.vesselPosition", props?.vesselPosition);
+        // setLocationLock(props.vesselPosition)
+    }, [props.vesselPosition]);
+
     return (
         <Box>
             <Map
                 initialViewState={{
-                    latitude: 40,
-                    longitude: -100,
-                    zoom: 3.5,
+                    latitude: props.mapView?.latitude || 40,
+                    longitude: props.mapView?.longitude || -100,
+                    zoom: props.mapView?.zoom || 3.5,
                     bearing: 0,
                     pitch: 0
                 }}
+                key={`${props.mapView?.latitude}-${props.mapView?.longitude}-${props.mapView?.zoom}`}
 
-                mapStyle="mapbox://styles/geoffsee/cmd1qz39x01ga01qv5acea02y"
+                mapStyle={props.layer?.value || "mapbox://styles/mapbox/standard"}
                 mapboxAccessToken={props.mapboxPublicKey}
                 style={{position: "fixed", width: '100%', height: '100%', bottom: 0, top: 0, left: 0, right: 0}}
             >
-                <GeolocateControl showUserHeading={true} showUserLocation={true} position="top-left" />
+                <GeolocateControl showUserHeading={true} showUserLocation={true} geolocation={props.geolocation} position="top-left" />
                 <FullscreenControl position="top-left" />
                 <NavigationControl position="top-left" />
                 <ScaleControl />
@@ -107,6 +125,9 @@ export default function MapNext(props: any = {mapboxPublicKey: ""} as any) {
                         <img width="100%" src={popupInfo.image} />
                     </Popup>
                 )}
+
+
+
             </Map>
 
             <ControlPanel />

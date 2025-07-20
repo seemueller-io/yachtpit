@@ -62,8 +62,8 @@ mod tests {
         assert_eq!(gps.display_name(), "GPS Navigation");
         assert_eq!(gps.status(), SystemStatus::Active);
 
-        let vessle_data = VesselData::default();
-        let display = gps.render_display(&vessle_data);
+        let vessel_data = VesselData::default();
+        let display = gps.render_display(&vessel_data);
         assert!(display.contains("GPS NAVIGATION SYSTEM"));
         assert!(display.contains("Satellites: 12 connected"));
     }

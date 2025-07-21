@@ -350,8 +350,22 @@ async fn handle_websocket(mut socket: WebSocket, state: AppState) {
                     Ok(data) => {
                         // Apply bounding box filtering if configured
                         let should_send = match &bounding_box {
-                            Some(bbox) => is_within_bounding_box(&data, bbox),
-                            None => true, // Send all data if no bounding box is set
+                            Some(bbox) => {
+                                let within_bounds = is_within_bounding_box(&data, bbox);
+                                if !within_bounds {
+                                    println!("Vessel filtered out - MMSI: {:?}, Lat: {:?}, Lon: {:?}, Bbox: sw_lat={}, sw_lon={}, ne_lat={}, ne_lon={}", 
+                                        data.mmsi, data.latitude, data.longitude, bbox.sw_lat, bbox.sw_lon, bbox.ne_lat, bbox.ne_lon);
+                                } else {
+                                    println!("Vessel within bounds - MMSI: {:?}, Lat: {:?}, Lon: {:?}", 
+                                        data.mmsi, data.latitude, data.longitude);
+                                }
+                                within_bounds
+                            },
+                            None => {
+                                println!("No bounding box set - sending vessel MMSI: {:?}, Lat: {:?}, Lon: {:?}", 
+                                    data.mmsi, data.latitude, data.longitude);
+                                true // Send all data if no bounding box is set
+                            }
                         };
                         
                         if should_send {
@@ -606,7 +620,7 @@ async fn connect_to_ais_stream_with_broadcast(state: AppState) -> Result<(), Box
     let (mut sender, mut receiver) = ws_stream.split();
 
     let key = "MDc4YzY5NTdkMGUwM2UzMzQ1Zjc5NDFmOTA1ODg4ZTMyOGQ0MjM0MA==";
-    // Create subscription message with default bounding box (Port of Los Angeles area)
+    // Create subscription message with default bounding box (New York Harbor area)
     // In a full implementation, this could be made dynamic based on active HTTP requests
     let subscription_message = SubscriptionMessage {
         apikey: STANDARD.decode(key)
@@ -614,8 +628,8 @@ async fn connect_to_ais_stream_with_broadcast(state: AppState) -> Result<(), Box
             .and_then(|bytes| String::from_utf8(bytes).ok())
             .unwrap_or_default(),
         bounding_boxes: vec![vec![
-            [33.6, -118.5], // Southwest corner (lat, lon)
-            [33.9, -118.0]  // Northeast corner (lat, lon)
+            [40.4, -74.8], // Southwest corner (lat, lon) - broader area around NYC
+            [41.0, -73.2]  // Northeast corner (lat, lon) - covers NYC harbor and approaches
         ]],
         filters_ship_mmsi: vec![], // Remove specific MMSI filters to get all ships in the area
     };

@@ -9426,6 +9426,8 @@ checksum = "6fd8403733700263c6eb89f192880191f1b83e332f7a20371ddcf421c4a337c7"
 name = "yachtpit"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "base-map",
  "bevy",
  "bevy_asset_loader",
  "bevy_flurx",

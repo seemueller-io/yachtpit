@@ -148,7 +148,7 @@ fn setup_menu(mut commands: Commands) {
                     BackgroundColor(secondary_button_colors.normal),
                     BorderColor(Color::linear_rgb(0.80, 0.82, 0.85)),
                     BorderRadius::all(Val::Px(12.0)),
-                    secondary_button_colors,
+                    secondary_button_colors.clone(),
                     OpenLink("https://bevyengine.org"),
                 ))
                 .with_child((

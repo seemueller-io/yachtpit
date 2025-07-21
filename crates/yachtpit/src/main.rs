@@ -9,12 +9,22 @@ use bevy::DefaultPlugins;
 use yachtpit::GamePlugin;
 use std::io::Cursor;
 use winit::window::Icon;
+use tokio::process::Command;
 
 #[cfg(not(target_arch = "wasm32"))]
 use bevy_webview_wry::WebviewWryPlugin;
 
-fn main() {
-    #[cfg(not(target_arch = "wasm32"))]
+
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main(flavor = "multi_thread")]
+async fn main() {
+    
+    launch_bevy();
+}
+
+
+#[cfg(not(target_arch = "wasm32"))]
+fn launch_bevy() {
     App::new()
         .insert_resource(ClearColor(Color::NONE))
         .add_plugins(
@@ -22,7 +32,6 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         // Bind to canvas included in `index.html`
-                        canvas: Some("#yachtpit-canvas".to_owned()),
                         fit_canvas_to_parent: true,
                         // Tells wasm not to override default event handling, like F5 and Ctrl+R
                         prevent_default_event_handling: false,
@@ -37,10 +46,14 @@ fn main() {
         )
         .add_plugins(GamePlugin)
         .add_systems(Startup, set_window_icon)
+        .add_systems(Update, start_ais_server)
         .add_plugins(WebviewWryPlugin::default())
         .run();
+}
 
-    #[cfg(target_arch = "wasm32")]
+
+#[cfg(target_arch = "wasm32")]
+fn launch_bevy() {
     {
         // Add console logging for WASM debugging
         console_error_panic_hook::set_once();
@@ -73,8 +86,19 @@ fn main() {
             })
             .run();
     }
-
 }
+
+fn start_ais_server() {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.block_on(async {
+        if let Ok(mut cmd) = Command::new("cargo")
+            .current_dir("../ais-server")
+            .arg("run").arg("--release").spawn() {
+            let _ = cmd.wait().await;
+        }
+    });
+}
+
 
 // Sets the icon on windows and X11
 fn set_window_icon(

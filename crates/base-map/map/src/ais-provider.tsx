@@ -88,9 +88,9 @@ export const useAISProvider = (boundingBox?: BoundingBox) => {
     
     const wsRef = useRef<WebSocket | null>(null);
     const vesselMapRef = useRef<Map<string, VesselData>>(new Map());
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const reconnectTimeoutRef = useRef<any | null>(null);
     const reconnectAttemptsRef = useRef<number>(0);
-    const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const connectionTimeoutRef = useRef<any | null>(null);
     const isConnectingRef = useRef<boolean>(false);
     const isMountedRef = useRef<boolean>(true);
     const maxReconnectAttempts = 10;

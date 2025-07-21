@@ -11,6 +11,8 @@ import Map, {
 
 import ControlPanel from './control-panel.tsx';
 import Pin from './pin.tsx';
+import VesselMarker from './vessel-marker';
+import type { VesselData } from './ais-provider';
 
 import PORTS from './test_data/nautical-base-data.json';
 import {Box} from "@chakra-ui/react";
@@ -27,7 +29,19 @@ export interface Geolocation {
 
 
 
-export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: Geolocation, vesselPosition: undefined, layer: undefined, mapView: undefined} as any) {
+interface MapNextProps {
+    mapboxPublicKey: string;
+    geolocation: Geolocation;
+    vesselPosition?: any;
+    layer?: any;
+    mapView?: any;
+    aisVessels?: VesselData[];
+    onVesselClick?: (vessel: VesselData) => void;
+    vesselPopup?: VesselData | null;
+    onVesselPopupClose?: () => void;
+}
+
+export default function MapNext(props: MapNextProps) {
     const [popupInfo, setPopupInfo] = useState(null);
     const mapRef = useRef<MapRef | null>(null);
 
@@ -70,6 +84,52 @@ export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: 
         []
     );
 
+    // Helper function to get vessel color based on type
+    const getVesselColor = (type: string): string => {
+        switch (type.toLowerCase()) {
+            case 'yacht':
+            case 'pleasure craft':
+                return '#00cc66';
+            case 'fishing vessel':
+            case 'fishing':
+                return '#ff6600';
+            case 'cargo':
+            case 'container':
+                return '#cc0066';
+            case 'tanker':
+                return '#ff0000';
+            case 'passenger':
+                return '#6600cc';
+            default:
+                return '#0066cc';
+        }
+    };
+
+    // Create vessel markers
+    const vesselMarkers = useMemo(() => 
+        (props.aisVessels || []).map((vessel) => (
+            <Marker
+                key={`vessel-${vessel.id}`}
+                longitude={vessel.longitude}
+                latitude={vessel.latitude}
+                anchor="center"
+                onClick={(e) => {
+                    e.originalEvent.stopPropagation();
+                    if (props.onVesselClick) {
+                        props.onVesselClick(vessel);
+                    }
+                }}
+            >
+                <VesselMarker 
+                    heading={vessel.heading}
+                    color={getVesselColor(vessel.type)}
+                    size={16}
+                />
+            </Marker>
+        )),
+        [props.aisVessels, props.onVesselClick]
+    );
+
     return (
         <Box>
             <Map
@@ -100,6 +160,31 @@ export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: 
                 <ScaleControl />
 
                 {pins}
+                {vesselMarkers}
+
+                {/* Vessel Popup */}
+                {props.vesselPopup && (
+                    <Popup
+                        longitude={props.vesselPopup.longitude}
+                        latitude={props.vesselPopup.latitude}
+                        anchor="bottom"
+                        onClose={() => props.onVesselPopupClose && props.onVesselPopupClose()}
+                        closeButton={true}
+                        closeOnClick={false}
+                    >
+                        <div style={{ padding: '10px', minWidth: '200px' }}>
+                            <h4 style={{ margin: '0 0 10px 0' }}>{props.vesselPopup.name}</h4>
+                            <div><strong>MMSI:</strong> {props.vesselPopup.mmsi}</div>
+                            <div><strong>Type:</strong> {props.vesselPopup.type}</div>
+                            <div><strong>Speed:</strong> {props.vesselPopup.speed.toFixed(1)} knots</div>
+                            <div><strong>Heading:</strong> {props.vesselPopup.heading}°</div>
+                            <div><strong>Position:</strong> {props.vesselPopup.latitude.toFixed(4)}, {props.vesselPopup.longitude.toFixed(4)}</div>
+                            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                                Last update: {props.vesselPopup.lastUpdate.toLocaleTimeString()}
+                            </div>
+                        </div>
+                    </Popup>
+                )}
 
                 {popupInfo && (
                     <Popup

@@ -5,7 +5,7 @@ import {useState} from "react";
 import {getNeumorphicColors, getNeumorphicStyle} from './theme/neumorphic-theme';
 
 export const layers = [
-    { name: 'OSM', value: 'mapbox://styles/mapbox/dark-v11' },
+    { name: 'Standard', value: 'mapbox://styles/mapbox/dark-v11' },
     { name: 'Satellite', value: 'mapbox://styles/mapbox/satellite-v9' },
 ];
 

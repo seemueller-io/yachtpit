@@ -427,7 +427,7 @@ function App() {
                         mr={2}
                         {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
                     >
-                        <Text>SEARCH</Text>
+                        <Text>Search...</Text>
                     </Button>
                     {isSearchOpen && <Box
                         w="200px"

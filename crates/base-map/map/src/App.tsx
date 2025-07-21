@@ -288,6 +288,7 @@ function App() {
     }, []);
 
     const handleSearchClick = useCallback(async () => {
+        console.log("calling hsc")
         if (isSearchOpen && searchInput.length > 1) {
             try {
                 console.log(`Trying to geocode: ${searchInput}`);
@@ -433,6 +434,12 @@ function App() {
                         w="200px"
                         transform={`translateX(${isSearchOpen ? "0" : "100%"})`}
                         opacity={isSearchOpen ? 1 : 0}
+                        onKeyDown={(e) => {
+                            console.log(e);
+                            if(e.key === 'Escape') {
+                                setIsSearchOpen(false)
+                            }
+                        }}
                         backdropFilter="blur(10px)"
                         {...getNeumorphicStyle(colorMode as 'light' | 'dark', 'pressed')}
                     >
@@ -441,6 +448,12 @@ function App() {
                             size="sm"
                             value={searchInput}
                             onChange={e => setSearchInput(e.target.value)}
+                            onKeyPress={async (e) => {
+                                console.log(e);
+                                if (e.key === 'Enter' && searchResults.length === 0 && searchInput.length > 2) {
+                                    await handleSearchClick()
+                                }
+                            }}
                             border="none"
                             {...getNeumorphicStyle(colorMode as 'light' | 'dark', 'pressed')}
                         />
@@ -452,6 +465,7 @@ function App() {
                                 w="200px"
                                 zIndex={2}
                                 mt={2}
+
                                 backdropFilter="blur(10px)"
                                 {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
                             >
@@ -464,6 +478,15 @@ function App() {
                                             cursor="pointer"
                                             borderRadius="8px"
                                             transition="all 0.2s ease-in-out"
+                                            onKeyPress={async (e) => {
+                                                console.log(e.key)
+                                                if (e.key === 'Enter' && searchResults.length > 0) {
+                                                    console.log(`Selecting result ${result.lat}, ${result.lon}`);
+                                                    await selectSearchResult(result);
+                                                    setSearchResults([]);
+                                                    setIsSearchOpen(false);
+                                                }
+                                            }}
                                             _hover={{ 
                                                 bg: colors.accent + '20',
                                                 transform: 'translateY(-1px)',

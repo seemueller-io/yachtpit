@@ -17,6 +17,8 @@ import { useRealAISProvider } from './real-ais-provider.tsx';
 
 import PORTS from './test_data/nautical-base-data.json';
 import {Box} from "@chakra-ui/react";
+import { useColorMode } from './components/ui/color-mode';
+import { getNeumorphicStyle, getNeumorphicColors } from './theme/neumorphic-theme';
 
 
 export interface Geolocation {
@@ -31,6 +33,7 @@ export interface Geolocation {
 
 
 export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: Geolocation, vesselPosition: undefined, layer: undefined, mapView: undefined} as any) {
+    const { colorMode } = useColorMode();
     const [popupInfo, setPopupInfo] = useState(null);
     const [vesselPopupInfo, setVesselPopupInfo] = useState<VesselData | null>(null);
     const [boundingBox, setBoundingBox] = useState<{sw_lat: number, sw_lon: number, ne_lat: number, ne_lon: number} | undefined>(undefined);
@@ -230,28 +233,45 @@ export default function MapNext(props: any = {mapboxPublicKey: "", geolocation: 
                         latitude={vesselPopupInfo.latitude}
                         onClose={() => setVesselPopupInfo(null)}
                     >
-                        <div style={{ minWidth: '200px' }}>
-                            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold' }}>
+                        <Box 
+                            minW="240px" 
+                            p={4}
+                            backdropFilter="blur(10px)"
+                            {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
+                        >
+                            <Box 
+                                mb={3} 
+                                fontSize="lg" 
+                                fontWeight="bold"
+                                color={getNeumorphicColors(colorMode as 'light' | 'dark').text}
+                            >
                                 {vesselPopupInfo.name}
-                            </h3>
-                            <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
-                                <div><strong>Type:</strong> {vesselPopupInfo.type}</div>
-                                <div><strong>MMSI:</strong> {vesselPopupInfo.mmsi}</div>
-                                <div><strong>Call Sign:</strong> {vesselPopupInfo.callSign}</div>
-                                <div><strong>Speed:</strong> {vesselPopupInfo.speed.toFixed(1)} knots</div>
-                                <div><strong>Heading:</strong> {vesselPopupInfo.heading.toFixed(0)}°</div>
-                                <div><strong>Length:</strong> {vesselPopupInfo.length.toFixed(0)}m</div>
+                            </Box>
+                            <Box fontSize="sm" lineHeight="1.6">
+                                <Box mb={1}><strong>Type:</strong> {vesselPopupInfo.type}</Box>
+                                <Box mb={1}><strong>MMSI:</strong> {vesselPopupInfo.mmsi}</Box>
+                                <Box mb={1}><strong>Call Sign:</strong> {vesselPopupInfo.callSign}</Box>
+                                <Box mb={1}><strong>Speed:</strong> {vesselPopupInfo.speed.toFixed(1)} knots</Box>
+                                <Box mb={1}><strong>Heading:</strong> {vesselPopupInfo.heading.toFixed(0)}°</Box>
+                                <Box mb={1}><strong>Length:</strong> {vesselPopupInfo.length.toFixed(0)}m</Box>
                                 {vesselPopupInfo.destination && (
-                                    <div><strong>Destination:</strong> {vesselPopupInfo.destination}</div>
+                                    <Box mb={1}><strong>Destination:</strong> {vesselPopupInfo.destination}</Box>
                                 )}
                                 {vesselPopupInfo.eta && (
-                                    <div><strong>ETA:</strong> {vesselPopupInfo.eta}</div>
+                                    <Box mb={1}><strong>ETA:</strong> {vesselPopupInfo.eta}</Box>
                                 )}
-                                <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+                                <Box 
+                                    fontSize="xs" 
+                                    color={getNeumorphicColors(colorMode as 'light' | 'dark').textSecondary}
+                                    mt={3}
+                                    pt={2}
+                                    borderTop="1px solid"
+                                    borderColor={getNeumorphicColors(colorMode as 'light' | 'dark').textSecondary + '30'}
+                                >
                                     Last Update: {vesselPopupInfo.lastUpdate.toLocaleTimeString()}
-                                </div>
-                            </div>
-                        </div>
+                                </Box>
+                            </Box>
+                        </Box>
                     </Popup>
                 )}
 

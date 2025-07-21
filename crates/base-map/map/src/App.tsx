@@ -1,17 +1,14 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import {Box, Button, HStack, Input} from '@chakra-ui/react';
+import {Box, Button, HStack, Input, Text} from '@chakra-ui/react';
+import { useColorMode } from './components/ui/color-mode';
 import {useCallback, useEffect, useState} from "react";
 import MapNext, {type Geolocation} from "@/MapNext.tsx";
+import { getNeumorphicStyle, getNeumorphicColors } from './theme/neumorphic-theme';
+import {layers, LayerSelector} from "@/LayerSelector.tsx";
 
 // public key
 const key =
     'cGsuZXlKMUlqb2laMlZ2Wm1aelpXVWlMQ0poSWpvaVkycDFOalo0YkdWNk1EUTRjRE41YjJnNFp6VjNNelp6YXlKOS56LUtzS1l0X3VGUGdCSDYwQUFBNFNn';
-
-const layers = [
-    { name: 'OSM', value: 'mapbox://styles/mapbox/dark-v11' },
-    { name: 'Satellite', value: 'mapbox://styles/mapbox/satellite-v9' },
-];
-
 
 
 // const vesselLayerStyle: CircleLayerSpecification = {
@@ -40,8 +37,6 @@ interface VesselStatus {
     speed: number;
 }
 
-export type Layer = { name: string; value: string };
-export type Layers = Layer[];
 
 class MyGeolocation implements Geolocation {
     constructor({clearWatch, getCurrentPosition, watchPosition}: {
@@ -65,6 +60,155 @@ class MyGeolocation implements Geolocation {
 
 }
 
+
+const custom_geolocation = new MyGeolocation({
+    clearWatch: (watchId: number) => {
+        if (typeof window !== 'undefined' && (window as any).geolocationWatches) {
+            const interval = (window as any).geolocationWatches.get(watchId);
+            if (interval) {
+                clearInterval(interval);
+                (window as any).geolocationWatches.delete(watchId);
+            }
+        }
+    },
+    watchPosition: (successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, options?: PositionOptions) => {
+        if (typeof window === 'undefined') return 0;
+
+        // Initialize watches map if it doesn't exist
+        if (!(window as any).geolocationWatches) {
+            (window as any).geolocationWatches = new Map();
+        }
+        if (!(window as any).geolocationWatchId) {
+            (window as any).geolocationWatchId = 0;
+        }
+
+        const watchId = ++(window as any).geolocationWatchId;
+
+        const pollPosition = async () => {
+            if ((window as any).__FLURX__) {
+                try {
+                    const vesselStatus: VesselStatus = await (window as any).__FLURX__.invoke("get_vessel_status");
+                    const position: GeolocationPosition = {
+                        coords: {
+                            latitude: vesselStatus.latitude,
+                            longitude: vesselStatus.longitude,
+                            altitude: null,
+                            accuracy: 10, // Assume 10m accuracy
+                            altitudeAccuracy: null,
+                            heading: vesselStatus.heading,
+                            speed: vesselStatus.speed,
+                            toJSON: () => ({
+                                latitude: vesselStatus.latitude,
+                                longitude: vesselStatus.longitude,
+                                altitude: null,
+                                accuracy: 10,
+                                altitudeAccuracy: null,
+                                heading: vesselStatus.heading,
+                                speed: vesselStatus.speed
+                            })
+                        },
+                        timestamp: Date.now(),
+                        toJSON: () => ({
+                            coords: {
+                                latitude: vesselStatus.latitude,
+                                longitude: vesselStatus.longitude,
+                                altitude: null,
+                                accuracy: 10,
+                                altitudeAccuracy: null,
+                                heading: vesselStatus.heading,
+                                speed: vesselStatus.speed
+                            },
+                            timestamp: Date.now()
+                        })
+                    };
+                    successCallback(position);
+                } catch (error) {
+                    if (errorCallback) {
+                        const positionError: GeolocationPositionError = {
+                            code: 2, // POSITION_UNAVAILABLE
+                            message: 'Failed to get vessel status: ' + error,
+                            PERMISSION_DENIED: 1,
+                            POSITION_UNAVAILABLE: 2,
+                            TIMEOUT: 3
+                        };
+                        errorCallback(positionError);
+                    }
+                }
+            }
+        };
+
+        // Poll immediately and then at intervals
+        pollPosition();
+        const interval = setInterval(pollPosition, options?.timeout || 5000);
+        (window as any).geolocationWatches.set(watchId, interval);
+
+        return watchId;
+    },
+    getCurrentPosition: (successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, _options?: PositionOptions) => {
+        if (typeof window !== 'undefined' && (window as any).__FLURX__) {
+            (async () => {
+                try {
+                    const vesselStatus: VesselStatus = await (window as any).__FLURX__.invoke("get_vessel_status");
+                    const position: GeolocationPosition = {
+                        coords: {
+                            latitude: vesselStatus.latitude,
+                            longitude: vesselStatus.longitude,
+                            altitude: null,
+                            accuracy: 10, // Assume 10m accuracy
+                            altitudeAccuracy: null,
+                            heading: vesselStatus.heading,
+                            speed: vesselStatus.speed,
+                            toJSON: () => ({
+                                latitude: vesselStatus.latitude,
+                                longitude: vesselStatus.longitude,
+                                altitude: null,
+                                accuracy: 10,
+                                altitudeAccuracy: null,
+                                heading: vesselStatus.heading,
+                                speed: vesselStatus.speed
+                            })
+                        },
+                        timestamp: Date.now(),
+                        toJSON: () => ({
+                            coords: {
+                                latitude: vesselStatus.latitude,
+                                longitude: vesselStatus.longitude,
+                                altitude: null,
+                                accuracy: 10,
+                                altitudeAccuracy: null,
+                                heading: vesselStatus.heading,
+                                speed: vesselStatus.speed
+                            },
+                            timestamp: Date.now()
+                        })
+                    };
+                    successCallback(position);
+                } catch (error) {
+                    if (errorCallback) {
+                        const positionError: GeolocationPositionError = {
+                            code: 2, // POSITION_UNAVAILABLE
+                            message: 'Failed to get vessel status: ' + error,
+                            PERMISSION_DENIED: 1,
+                            POSITION_UNAVAILABLE: 2,
+                            TIMEOUT: 3
+                        };
+                        errorCallback(positionError);
+                    }
+                }
+            })();
+        } else if (errorCallback) {
+            const positionError: GeolocationPositionError = {
+                code: 2, // POSITION_UNAVAILABLE
+                message: '__FLURX__ not available',
+                PERMISSION_DENIED: 1,
+                POSITION_UNAVAILABLE: 2,
+                TIMEOUT: 3
+            };
+            errorCallback(positionError);
+        }
+    },
+});
+
 // interface MapViewParams {
 //     latitude: number;
 //     longitude: number;
@@ -76,49 +220,10 @@ class MyGeolocation implements Geolocation {
 //     token: string | null;
 // }
 
-function LayerSelector(props: { onClick: (e: any) => Promise<void> }) {
-    const [isOpen, setIsOpen] = useState(false);
 
-    return (
-        <Box position="relative">
-            <Button colorScheme="blue" size="sm" variant="solid" onClick={() => setIsOpen(!isOpen)}>
-                Layer
-            </Button>
-
-            {isOpen && (
-                <Box
-                    position="absolute"
-                    top="100%"
-                    left={0}
-                    w="200px"
-                    bg="rgba(0, 0, 0, 0.8)"
-                    boxShadow="md"
-                    zIndex={2}
-                >
-                    {layers.map(layer => (
-                        <Box
-                            key={layer.value}
-                            id={layer.value}
-                            p={2}
-                            cursor="pointer"
-                            color="white"
-                            _hover={{ bg: 'whiteAlpha.200' }}
-                            onClick={async e => {
-                                setIsOpen(false);
-                                await props.onClick(e);
-                            }}
-                        >
-                            {layer.name}
-                        </Box>
-                    ))}
-                </Box>
-            )}
-        </Box>
-    );
-}
 
 function App() {
-
+    const { colorMode } = useColorMode();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [selectedLayer, setSelectedLayer] = useState(layers[0]);
     const [searchInput, setSearchInput] = useState('');
@@ -215,12 +320,10 @@ function App() {
         }
     }, [isSearchOpen, searchInput]);
 
-    const handleLayerChange = useCallback(async (e: any) => {
-        const newLayer = layers.find(layer => layer.value === e.target.id);
-        if (newLayer) {
-            setSelectedLayer(newLayer);
-            console.log('Layer changed to:', newLayer.name);
-        }
+    const handleLayerChange = useCallback(async (layer: any) => {
+        console.log('Layer change requested:', layer);
+        setSelectedLayer(layer);
+        console.log('Layer changed to:', layer.name);
     }, []);
 
     // const handleMapViewChange = useCallback(async (evt: any) => {
@@ -289,25 +392,24 @@ function App() {
     return (
         /* Full-screen wrapper — fills the viewport and becomes the positioning context */
         <Box w="100vw" h="100vh" position="relative" overflow="hidden">
-            {/* GPS Feed Display — absolutely positioned at bottom-left */}
+            {/* GPS Feed Display — absolutely positioned at top-right */}
             {vesselPosition && (
                 <Box
                     position="absolute"
                     top={65}
                     right={4}
                     zIndex={1}
-                    bg="rgba(0, 0, 0, 0.8)"
-                    color="white"
-                    p={3}
-                    borderRadius="md"
+                    p={4}
                     fontSize="sm"
                     fontFamily="monospace"
-                    minW="200px"
+                    minW="220px"
+                    backdropFilter="blur(10px)"
+                    {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
                 >
-                    <Box fontWeight="bold" mb={2}>GPS Feed</Box>
-                    <Box>Lat: {vesselPosition.latitude.toFixed(6)}°</Box>
-                    <Box>Lon: {vesselPosition.longitude.toFixed(6)}°</Box>
-                    <Box>Heading: {vesselPosition.heading.toFixed(1)}°</Box>
+                    <Box fontWeight="bold" mb={3} fontSize="md">GPS Feed</Box>
+                    <Box mb={1}>Lat: {vesselPosition.latitude.toFixed(6)}°</Box>
+                    <Box mb={1}>Lon: {vesselPosition.longitude.toFixed(6)}°</Box>
+                    <Box mb={1}>Heading: {vesselPosition.heading.toFixed(1)}°</Box>
                     <Box>Speed: {vesselPosition.speed.toFixed(1)} kts</Box>
                 </Box>
             )}
@@ -316,39 +418,31 @@ function App() {
                 <Box
                     display="flex"
                     alignItems="center"
+                    position="relative"
                 >
                     <Button
-                        colorScheme="teal"
                         size="sm"
-                        variant="solid"
+                        variant="surface"
                         onClick={handleSearchClick}
                         mr={2}
+                        {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
                     >
-                        Search
+                        <Text>SEARCH</Text>
                     </Button>
                     {isSearchOpen && <Box
                         w="200px"
-                        transition="all 0.3s"
                         transform={`translateX(${isSearchOpen ? "0" : "100%"})`}
-                        background="rgba(0, 0, 0, 0.8)"
                         opacity={isSearchOpen ? 1 : 0}
-                        color="white"
+                        backdropFilter="blur(10px)"
+                        {...getNeumorphicStyle(colorMode as 'light' | 'dark', 'pressed')}
                     >
                         <Input
                             placeholder="Search..."
                             size="sm"
                             value={searchInput}
                             onChange={e => setSearchInput(e.target.value)}
-                            color="white"
-                            bg="rgba(0, 0, 0, 0.8)"
                             border="none"
-                            borderRadius="0"
-                            _focus={{
-                                outline: 'none',
-                            }}
-                            _placeholder={{
-                                color: "#d1cfcf"
-                            }}
+                            {...getNeumorphicStyle(colorMode as 'light' | 'dark', 'pressed')}
                         />
                         {searchResults.length > 0 && (
                             <Box
@@ -356,180 +450,42 @@ function App() {
                                 top="100%"
                                 left={0}
                                 w="200px"
-                                bg="rgba(0, 0, 0, 0.8)"
-                                boxShadow="md"
                                 zIndex={2}
+                                mt={2}
+                                backdropFilter="blur(10px)"
+                                {...getNeumorphicStyle(colorMode as 'light' | 'dark')}
                             >
-                                {searchResults.map((result, index) => (
-                                    <Box
-                                        key={index}
-                                        p={2}
-                                        cursor="pointer"
-                                        color="white"
-                                        _hover={{ bg: 'whiteAlpha.200' }}
-                                        onClick={async () => {
-                                            console.log(`Selecting result ${result.lat}, ${result.lon}`);
-                                            await selectSearchResult(result);
-                                            setSearchResults([]);
-                                            setIsSearchOpen(false);
-                                        }}
-                                    >
-                                        {`${result.lat}, ${result.lon}`}
-                                    </Box>
-                                ))}
+                                {searchResults.map((result, index) => {
+                                    const colors = getNeumorphicColors(colorMode as 'light' | 'dark');
+                                    return (
+                                        <Box
+                                            key={index}
+                                            p={3}
+                                            cursor="pointer"
+                                            borderRadius="8px"
+                                            transition="all 0.2s ease-in-out"
+                                            _hover={{ 
+                                                bg: colors.accent + '20',
+                                                transform: 'translateY(-1px)',
+                                            }}
+                                            onClick={async () => {
+                                                console.log(`Selecting result ${result.lat}, ${result.lon}`);
+                                                await selectSearchResult(result);
+                                                setSearchResults([]);
+                                                setIsSearchOpen(false);
+                                            }}
+                                        >
+                                            {`${result.lat}, ${result.lon}`}
+                                        </Box>
+                                    );
+                                })}
                             </Box>
                         )}
                     </Box>}
                 </Box>
                 <LayerSelector onClick={handleLayerChange} />
             </HStack>
-            <MapNext mapboxPublicKey={atob(key)} vesselPosition={vesselPosition} layer={selectedLayer} mapView={mapView} geolocation={new MyGeolocation({
-                clearWatch: (watchId: number) => {
-                    if (typeof window !== 'undefined' && (window as any).geolocationWatches) {
-                        const interval = (window as any).geolocationWatches.get(watchId);
-                        if (interval) {
-                            clearInterval(interval);
-                            (window as any).geolocationWatches.delete(watchId);
-                        }
-                    }
-                },
-                watchPosition: (successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, options?: PositionOptions) => {
-                    if (typeof window === 'undefined') return 0;
-                    
-                    // Initialize watches map if it doesn't exist
-                    if (!(window as any).geolocationWatches) {
-                        (window as any).geolocationWatches = new Map();
-                    }
-                    if (!(window as any).geolocationWatchId) {
-                        (window as any).geolocationWatchId = 0;
-                    }
-                    
-                    const watchId = ++(window as any).geolocationWatchId;
-                    
-                    const pollPosition = async () => {
-                        if ((window as any).__FLURX__) {
-                            try {
-                                const vesselStatus: VesselStatus = await (window as any).__FLURX__.invoke("get_vessel_status");
-                                const position: GeolocationPosition = {
-                                    coords: {
-                                        latitude: vesselStatus.latitude,
-                                        longitude: vesselStatus.longitude,
-                                        altitude: null,
-                                        accuracy: 10, // Assume 10m accuracy
-                                        altitudeAccuracy: null,
-                                        heading: vesselStatus.heading,
-                                        speed: vesselStatus.speed,
-                                        toJSON: () => ({
-                                            latitude: vesselStatus.latitude,
-                                            longitude: vesselStatus.longitude,
-                                            altitude: null,
-                                            accuracy: 10,
-                                            altitudeAccuracy: null,
-                                            heading: vesselStatus.heading,
-                                            speed: vesselStatus.speed
-                                        })
-                                    },
-                                    timestamp: Date.now(),
-                                    toJSON: () => ({
-                                        coords: {
-                                            latitude: vesselStatus.latitude,
-                                            longitude: vesselStatus.longitude,
-                                            altitude: null,
-                                            accuracy: 10,
-                                            altitudeAccuracy: null,
-                                            heading: vesselStatus.heading,
-                                            speed: vesselStatus.speed
-                                        },
-                                        timestamp: Date.now()
-                                    })
-                                };
-                                successCallback(position);
-                            } catch (error) {
-                                if (errorCallback) {
-                                    const positionError: GeolocationPositionError = {
-                                        code: 2, // POSITION_UNAVAILABLE
-                                        message: 'Failed to get vessel status: ' + error,
-                                        PERMISSION_DENIED: 1,
-                                        POSITION_UNAVAILABLE: 2,
-                                        TIMEOUT: 3
-                                    };
-                                    errorCallback(positionError);
-                                }
-                            }
-                        }
-                    };
-                    
-                    // Poll immediately and then at intervals
-                    pollPosition();
-                    const interval = setInterval(pollPosition, options?.timeout || 5000);
-                    (window as any).geolocationWatches.set(watchId, interval);
-                    
-                    return watchId;
-                },
-                getCurrentPosition: (successCallback: PositionCallback, errorCallback?: PositionErrorCallback | null, _options?: PositionOptions) => {
-                    if (typeof window !== 'undefined' && (window as any).__FLURX__) {
-                        (async () => {
-                            try {
-                                const vesselStatus: VesselStatus = await (window as any).__FLURX__.invoke("get_vessel_status");
-                                const position: GeolocationPosition = {
-                                    coords: {
-                                        latitude: vesselStatus.latitude,
-                                        longitude: vesselStatus.longitude,
-                                        altitude: null,
-                                        accuracy: 10, // Assume 10m accuracy
-                                        altitudeAccuracy: null,
-                                        heading: vesselStatus.heading,
-                                        speed: vesselStatus.speed,
-                                        toJSON: () => ({
-                                            latitude: vesselStatus.latitude,
-                                            longitude: vesselStatus.longitude,
-                                            altitude: null,
-                                            accuracy: 10,
-                                            altitudeAccuracy: null,
-                                            heading: vesselStatus.heading,
-                                            speed: vesselStatus.speed
-                                        })
-                                    },
-                                    timestamp: Date.now(),
-                                    toJSON: () => ({
-                                        coords: {
-                                            latitude: vesselStatus.latitude,
-                                            longitude: vesselStatus.longitude,
-                                            altitude: null,
-                                            accuracy: 10,
-                                            altitudeAccuracy: null,
-                                            heading: vesselStatus.heading,
-                                            speed: vesselStatus.speed
-                                        },
-                                        timestamp: Date.now()
-                                    })
-                                };
-                                successCallback(position);
-                            } catch (error) {
-                                if (errorCallback) {
-                                    const positionError: GeolocationPositionError = {
-                                        code: 2, // POSITION_UNAVAILABLE
-                                        message: 'Failed to get vessel status: ' + error,
-                                        PERMISSION_DENIED: 1,
-                                        POSITION_UNAVAILABLE: 2,
-                                        TIMEOUT: 3
-                                    };
-                                    errorCallback(positionError);
-                                }
-                            }
-                        })();
-                    } else if (errorCallback) {
-                        const positionError: GeolocationPositionError = {
-                            code: 2, // POSITION_UNAVAILABLE
-                            message: '__FLURX__ not available',
-                            PERMISSION_DENIED: 1,
-                            POSITION_UNAVAILABLE: 2,
-                            TIMEOUT: 3
-                        };
-                        errorCallback(positionError);
-                    }
-                },
-            })}/>
+            <MapNext mapboxPublicKey={atob(key)} vesselPosition={vesselPosition} layer={selectedLayer} mapView={mapView} geolocation={window.navigator.geolocation || custom_geolocation}/>
             {/*<Map*/}
             {/*    mapboxAccessToken={atob(key)}*/}
             {/*    initialViewState={mapView}*/}

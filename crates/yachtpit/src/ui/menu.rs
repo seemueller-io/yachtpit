@@ -13,17 +13,42 @@ impl Plugin for MenuPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct ButtonColors {
     normal: Color,
     hovered: Color,
+    pressed: Color,
+}
+
+// Neumorphic color palette for luxury design
+struct NeumorphicColors;
+
+impl NeumorphicColors {
+    // Base surface color - soft gray with warm undertones
+    const SURFACE: Color = Color::linear_rgb(0.88, 0.90, 0.92);
+    
+    // Primary button colors with depth
+    const PRIMARY_NORMAL: Color = Color::linear_rgb(0.85, 0.87, 0.90);
+    const PRIMARY_HOVERED: Color = Color::linear_rgb(0.90, 0.92, 0.95);
+    const PRIMARY_PRESSED: Color = Color::linear_rgb(0.80, 0.82, 0.85);
+    
+    // Secondary button colors (more subtle)
+    const SECONDARY_NORMAL: Color = Color::linear_rgb(0.86, 0.88, 0.91);
+    const SECONDARY_HOVERED: Color = Color::linear_rgb(0.88, 0.90, 0.93);
+    const SECONDARY_PRESSED: Color = Color::linear_rgb(0.82, 0.84, 0.87);
+    
+    // Text colors for contrast
+    const TEXT_PRIMARY: Color = Color::linear_rgb(0.25, 0.30, 0.35);
+    const TEXT_SECONDARY: Color = Color::linear_rgb(0.45, 0.50, 0.55);
+    const TEXT_ACCENT: Color = Color::linear_rgb(0.20, 0.45, 0.75);
 }
 
 impl Default for ButtonColors {
     fn default() -> Self {
         ButtonColors {
-            normal: Color::linear_rgb(0.15, 0.15, 0.15),
-            hovered: Color::linear_rgb(0.25, 0.25, 0.25),
+            normal: NeumorphicColors::PRIMARY_NORMAL,
+            hovered: NeumorphicColors::PRIMARY_HOVERED,
+            pressed: NeumorphicColors::PRIMARY_PRESSED,
         }
     }
 }
@@ -34,6 +59,18 @@ struct Menu;
 fn setup_menu(mut commands: Commands) {
     info!("menu");
     commands.spawn((Camera2d, Msaa::Off));
+    
+    // Set neumorphic background
+    commands.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            position_type: PositionType::Absolute,
+            ..default()
+        },
+        BackgroundColor(NeumorphicColors::SURFACE),
+    ));
+    
     commands
         .spawn((
             Node {
@@ -52,23 +89,27 @@ fn setup_menu(mut commands: Commands) {
                 .spawn((
                     Button,
                     Node {
-                        width: Val::Px(140.0),
-                        height: Val::Px(50.0),
+                        width: Val::Px(180.0),
+                        height: Val::Px(65.0),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(2.0)),
+                        margin: UiRect::all(Val::Px(8.0)),
                         ..Default::default()
                     },
                     BackgroundColor(button_colors.normal),
+                    BorderColor(Color::linear_rgb(0.82, 0.84, 0.87)),
+                    BorderRadius::all(Val::Px(16.0)),
                     button_colors,
                     ChangeState(GameState::Playing),
                 ))
                 .with_child((
-                    Text::new("Play"),
+                    Text::new("▶ PLAY"),
                     TextFont {
-                        font_size: 40.0,
+                        font_size: 28.0,
                         ..default()
                     },
-                    TextColor(Color::linear_rgb(0.9, 0.9, 0.9)),
+                    TextColor(NeumorphicColors::TEXT_PRIMARY),
                 ));
         });
     commands
@@ -85,74 +126,71 @@ fn setup_menu(mut commands: Commands) {
             Menu,
         ))
         .with_children(|children| {
+            let secondary_button_colors = ButtonColors {
+                normal: NeumorphicColors::SECONDARY_NORMAL,
+                hovered: NeumorphicColors::SECONDARY_HOVERED,
+                pressed: NeumorphicColors::SECONDARY_PRESSED,
+            };
+            
             children
                 .spawn((
                     Button,
                     Node {
-                        width: Val::Px(170.0),
-                        height: Val::Px(50.0),
-                        justify_content: JustifyContent::SpaceAround,
+                        width: Val::Px(180.0),
+                        height: Val::Px(45.0),
+                        justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(5.)),
+                        padding: UiRect::all(Val::Px(8.)),
+                        border: UiRect::all(Val::Px(1.0)),
+                        margin: UiRect::horizontal(Val::Px(8.0)),
                         ..Default::default()
                     },
-                    BackgroundColor(Color::NONE),
-                    ButtonColors {
-                        normal: Color::NONE,
-                        ..default()
-                    },
+                    BackgroundColor(secondary_button_colors.normal),
+                    BorderColor(Color::linear_rgb(0.80, 0.82, 0.85)),
+                    BorderRadius::all(Val::Px(12.0)),
+                    secondary_button_colors,
                     OpenLink("https://bevyengine.org"),
                 ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("Made with Bevy"),
-                        TextFont {
-                            font_size: 15.0,
-                            ..default()
-                        },
-                        TextColor(Color::linear_rgb(0.9, 0.9, 0.9)),
-                    ));
-                    parent.spawn((
-                        Node {
-                            width: Val::Px(32.),
-                            ..default()
-                        },
-                    ));
-                });
+                .with_child((
+                    Text::new("🚀 Made with Bevy"),
+                    TextFont {
+                        font_size: 14.0,
+                        ..default()
+                    },
+                    TextColor(NeumorphicColors::TEXT_SECONDARY),
+                ));
+                
             children
                 .spawn((
                     Button,
                     Node {
-                        width: Val::Px(170.0),
-                        height: Val::Px(50.0),
-                        justify_content: JustifyContent::SpaceAround,
+                        width: Val::Px(180.0),
+                        height: Val::Px(45.0),
+                        justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(5.)),
+                        padding: UiRect::all(Val::Px(8.)),
+                        border: UiRect::all(Val::Px(1.0)),
+                        margin: UiRect::horizontal(Val::Px(8.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::NONE),
+                    BackgroundColor(secondary_button_colors.normal),
+                    BorderColor(Color::linear_rgb(0.80, 0.82, 0.85)),
+                    BorderRadius::all(Val::Px(12.0)),
                     ButtonColors {
-                        normal: Color::NONE,
-                        hovered: Color::linear_rgb(0.25, 0.25, 0.25),
+                        normal: NeumorphicColors::SECONDARY_NORMAL,
+                        hovered: NeumorphicColors::SECONDARY_HOVERED,
+                        pressed: NeumorphicColors::SECONDARY_PRESSED,
                     },
                     OpenLink("https://github.com/NiklasEi/bevy_game_template"),
                 ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("Open source"),
-                        TextFont {
-                            font_size: 15.0,
-                            ..default()
-                        },
-                        TextColor(Color::linear_rgb(0.9, 0.9, 0.9)),
-                    ));
-                    parent.spawn((
-                        Node {
-                            width: Val::Px(32.),
-                            ..default()
-                        },
-                    ));
-                });
+                .with_child((
+                    Text::new("📖 Open Source"),
+                    TextFont {
+                        font_size: 14.0,
+                        ..default()
+                    },
+                    TextColor(NeumorphicColors::TEXT_SECONDARY),
+                ));
         });
 }
 
@@ -178,6 +216,10 @@ fn click_play_button(
     for (interaction, mut color, button_colors, change_state, open_link) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
+                // Apply pressed state visual feedback
+                *color = button_colors.pressed.into();
+                
+                // Handle button actions
                 if let Some(state) = change_state {
                     next_state.set(state.0.clone());
                 } else if let Some(link) = open_link {
@@ -187,9 +229,11 @@ fn click_play_button(
                 }
             }
             Interaction::Hovered => {
+                // Smooth transition to hovered state
                 *color = button_colors.hovered.into();
             }
             Interaction::None => {
+                // Return to normal state
                 *color = button_colors.normal.into();
             }
         }

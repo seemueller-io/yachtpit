@@ -100,4 +100,4 @@ console_error_panic_hook = "0.1"
 
 [build-dependencies]
 embed-resource = "1"
-base-map = { path = "../base-map" }
+# base-map = { path = "../base-map" }  # Temporarily disabled for testing

@@ -62,7 +62,7 @@ const convertAisResponseToVesselData = (aisResponse: AisResponse): VesselData | 
     }
 
     return {
-        id: aisResponse.mmsi ?? !aisResponse.raw_message?.MetaData?.MSSI,
+        id: aisResponse.mmsi ?? aisResponse.raw_message?.MetaData?.MMSI,
         name: aisResponse.ship_name || `Vessel ${aisResponse.mmsi}`,
         type: aisResponse.ship_type || 'Unknown',
         latitude: aisResponse.latitude,
@@ -71,7 +71,7 @@ const convertAisResponseToVesselData = (aisResponse: AisResponse): VesselData | 
         speed: aisResponse.speed_over_ground || 0,
         length: 100, // Default length
         width: 20,   // Default width
-        mmsi: aisResponse.mmsi,
+        mmsi: aisResponse.mmsi ?? aisResponse.raw_message?.MetaData?.MMSI,
         callSign: '', 
         destination: '', 
         eta: '', 
@@ -338,8 +338,8 @@ export const useAISProvider = (boundingBox?: BoundingBox) => {
             console.log('Updated bounding box:', bbox);
             
             // Clear existing vessels when bounding box changes
-            vesselMapRef.current.clear();
-            setVessels([]);
+            // vesselMapRef.current.clear();
+            // setVessels([]);
         }
     }, []);
 

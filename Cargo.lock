@@ -132,6 +132,7 @@ dependencies = [
  "tokio",
  "tokio-test",
  "tokio-tungstenite 0.20.1",
+ "tokio-util",
  "tower 0.4.13",
  "tower-http 0.5.2",
  "url",

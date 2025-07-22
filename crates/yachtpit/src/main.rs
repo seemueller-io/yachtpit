@@ -2,26 +2,36 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bevy::asset::AssetMetaCheck;
+use bevy::ecs::spawn::SpawnableList;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy::winit::WinitWindows;
 use bevy::DefaultPlugins;
-use yachtpit::GamePlugin;
 use std::io::Cursor;
-use winit::window::Icon;
 use tokio::process::Command;
+use winit::window::Icon;
+use yachtpit::GamePlugin;
 
 #[cfg(not(target_arch = "wasm32"))]
-use bevy_webview_wry::WebviewWryPlugin;
-
-
-#[cfg(not(target_arch = "wasm32"))]
-#[tokio::main(flavor = "multi_thread")]
+#[tokio::main]
 async fn main() {
-    
+    // Start AIS server in background
+    tokio::spawn(async {
+        info!("Starting AIS server...");
+        let mut cmd = Command::new("target/release/ais").spawn().unwrap();
+        match cmd.wait().await {
+            Ok(status) => info!("AIS server process exited with status: {}", status),
+            Err(e) => error!("Error waiting for AIS server process: {}", e),
+        }
+    });
+
     launch_bevy();
 }
 
+
+
+#[cfg(not(target_arch = "wasm32"))]
+use bevy_webview_wry::WebviewWryPlugin;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn launch_bevy() {
@@ -45,12 +55,15 @@ fn launch_bevy() {
                 }),
         )
         .add_plugins(GamePlugin)
-        .add_systems(Startup, set_window_icon)
-        .add_systems(Update, start_ais_server)
+        .add_systems(Startup, set_window_icon) // Changed here
         .add_plugins(WebviewWryPlugin::default())
         .run();
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn main() {
+    launch_bevy();
+}
 
 #[cfg(target_arch = "wasm32")]
 fn launch_bevy() {
@@ -87,18 +100,53 @@ fn launch_bevy() {
             .run();
     }
 }
+//
+// fn start_ais_server() {
+//     static mut SERVER_STARTED: bool = false;
+//
+//     unsafe {
+//         if SERVER_STARTED {
+//             return;
+//         }
+//         SERVER_STARTED = true;
+//     }
+//
+//     let rt = tokio::runtime::Runtime::new().unwrap();
+//     rt.block_on(async {
+//         info!("Starting AIS server...");
+//         if let Ok(mut cmd) = Command::new("cargo")
+//             .current_dir("../ais")
+//             .arg("run").arg("--release")
+//             .spawn() {
+//             info!("AIS server process spawned");
+//             let status = cmd.wait().await;
+//             match status {
+//                 Ok(exit_status) => match exit_status.code() {
+//                     Some(code) => info!("AIS server exited with status code: {}", code),
+//                     None => info!("AIS server terminated by signal"),
+//                 },
+//                 Err(e) => error!("AIS server failed: {}", e),
+//             }
+//         } else {
+//             error!("Failed to start AIS server - unable to spawn process");
+//         }
+//     });
+// }
 
-fn start_ais_server() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(async {
-        if let Ok(mut cmd) = Command::new("cargo")
-            .current_dir("../ais-server")
-            .arg("run").arg("--release").spawn() {
-            let _ = cmd.wait().await;
-        }
-    });
-}
-
+// fn start_ais_server() {
+//     // This task will run on the Tokio runtime's thread pool without blocking Bevy
+//     tokio::spawn(async {
+//         info!("Starting AIS server in the background...");
+//
+//
+//
+//         // This now waits on the background task, not the main Bevy thread
+//         match cmd.wait().await {
+//             Ok(status) => info!("AIS server process exited with status: {}", status),
+//             Err(e) => error!("Error waiting for AIS server process: {}", e),
+//         }
+//     });
+// }
 
 // Sets the icon on windows and X11
 fn set_window_icon(

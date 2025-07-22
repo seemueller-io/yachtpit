@@ -1,12 +1,12 @@
 use axum::{
-    extract::{ws::{WebSocket, Message as WsMessage}, Query, State, WebSocketUpgrade},
+    extract::{ws::{Message as WsMessage, WebSocket}, Query, State, WebSocketUpgrade},
     http::StatusCode,
-    response::{Json, Response},
-    routing::get,
-    Router,
+    response::{Json, Response}
+
+    ,
 };
 use base64::{engine::general_purpose::STANDARD, Engine as _};
-use futures_util::{stream::SplitSink, SinkExt, StreamExt};
+use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
@@ -14,10 +14,9 @@ use tokio::{
     sync::{broadcast, Mutex},
     task::JoinHandle,
 };
-use tokio_util::sync::CancellationToken;
-use tower_http::cors::CorsLayer;
-use url::Url;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
+use tokio_util::sync::CancellationToken;
+use url::Url;
 
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -716,9 +715,9 @@ pub async fn shutdown_signal() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::create_router;
     use axum_test::TestServer;
     use serde_json::json;
-    use tokio::sync::broadcast;
 
     #[test]
     fn test_get_ship_type_description() {

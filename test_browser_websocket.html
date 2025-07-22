@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIS WebSocket Browser Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #fff3cd; color: #856404; }
+        .message { background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-left: 3px solid #007bff; }
+        .vessel-data { background-color: #e7f3ff; padding: 10px; margin: 5px 0; border-left: 3px solid #28a745; }
+        #messages { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>AIS WebSocket Browser Test</h1>
+    <div id="status" class="status disconnected">Disconnected</div>
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+    <button id="setBoundingBoxBtn" disabled>Set Bounding Box</button>
+    
+    <h2>Messages</h2>
+    <div id="messages"></div>
+
+    <script>
+        let ws = null;
+        const statusDiv = document.getElementById('status');
+        const messagesDiv = document.getElementById('messages');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const setBoundingBoxBtn = document.getElementById('setBoundingBoxBtn');
+
+        function updateStatus(message, className) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${className}`;
+        }
+
+        function addMessage(message, className = 'message') {
+            const div = document.createElement('div');
+            div.className = className;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) return;
+
+            updateStatus('Connecting...', 'error');
+            ws = new WebSocket('ws://localhost:3000/ws');
+
+            ws.onopen = function() {
+                updateStatus('Connected', 'connected');
+                addMessage('Connected to AIS WebSocket server');
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                setBoundingBoxBtn.disabled = false;
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    // Handle different message types
+                    if (typeof data === 'string' || data.type) {
+                        addMessage(`Server message: ${JSON.stringify(data)}`);
+                    } else if (data.mmsi) {
+                        // AIS vessel data
+                        const vesselInfo = `
+                            <strong>Vessel Data:</strong><br>
+                            MMSI: ${data.mmsi || 'N/A'}<br>
+                            Name: ${data.ship_name || 'N/A'}<br>
+                            Position: ${data.latitude || 'N/A'}, ${data.longitude || 'N/A'}<br>
+                            Speed: ${data.speed_over_ground || 'N/A'} knots<br>
+                            Course: ${data.course_over_ground || 'N/A'}°<br>
+                            Type: ${data.ship_type || 'N/A'}
+                        `;
+                        addMessage(vesselInfo, 'vessel-data');
+                    } else {
+                        addMessage(`Unknown data: ${JSON.stringify(data)}`);
+                    }
+                } catch (e) {
+                    addMessage(`Raw message: ${event.data}`);
+                }
+            };
+
+            ws.onerror = function(error) {
+                updateStatus('Error', 'error');
+                addMessage(`WebSocket error: ${error}`);
+            };
+
+            ws.onclose = function(event) {
+                updateStatus('Disconnected', 'disconnected');
+                addMessage(`Connection closed: ${event.code} - ${event.reason}`);
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                setBoundingBoxBtn.disabled = true;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function setBoundingBox() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = {
+                    type: 'set_bounding_box',
+                    bounding_box: {
+                        sw_lat: 33.7,
+                        sw_lon: -118.3,
+                        ne_lat: 33.8,
+                        ne_lon: -118.2
+                    }
+                };
+                ws.send(JSON.stringify(message));
+                addMessage('Sent bounding box configuration');
+            }
+        }
+
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        setBoundingBoxBtn.addEventListener('click', setBoundingBox);
+
+        // Auto-connect on page load
+        connect();
+    </script>
+</body>
+</html>

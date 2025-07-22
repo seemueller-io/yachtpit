@@ -102,3 +102,4 @@ console_error_panic_hook = "0.1"
 [build-dependencies]
 embed-resource = "1"
 base-map = { path = "../base-map" }  # Comment to Temporarily disable for testing
+ais = { path = "../ais" }  # Comment to Temporarily disable for testing

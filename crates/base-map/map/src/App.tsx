@@ -2,7 +2,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import {Box, Button, HStack, Text} from '@chakra-ui/react';
 import {useColorMode} from './components/ui/color-mode';
 import {useCallback, useEffect, useState} from "react";
-import MapNext from "@/MapNext.tsx";
+import GeoMap from "@/GeoMap";
 import {getNeumorphicColors, getNeumorphicStyle} from './theme/neumorphic-theme';
 import {layers, LayerSelector} from "@/LayerSelector.tsx";
 import {useAISProvider, type VesselData} from './ais-provider';
@@ -373,7 +373,7 @@ function App() {
                 </Button>
                 <LayerSelector onClick={handleLayerChange}/>
             </HStack>
-            <MapNext
+            <GeoMap
                 mapboxPublicKey={atob(key)}
                 vesselPosition={vesselPosition}
                 layer={selectedLayer}

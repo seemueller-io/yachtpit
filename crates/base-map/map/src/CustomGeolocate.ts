@@ -1,4 +1,4 @@
-import type {Geolocation} from "@/MapNext.tsx";
+import type {Geolocation} from "@/Map.tsx";
 
 
 export class NativeGeolocation implements Geolocation {
